@@ -24,6 +24,7 @@ def setupConverter(conv):
     import analyzer.core.run_builders
     import analyzer.utils.querying
     import analyzer.modules.common.axis
+    import analyzer.modules.common.hadronic_susy
 
     # import analyzer.core.results
     import analyzer.core.datasets

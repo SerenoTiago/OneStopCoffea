@@ -6,14 +6,10 @@ common_objects: &common_objects
     input_col: Electron
     output_col: tightElectron
     working_point: "tight"
-    min_pt: 15
+    # First-pass SUSY electron veto: cutBased tight and miniPFRelIso_all < 0.1.
+    # dxy/dz are not applied by ElectronMaker in this version.
+    min_pt: 10
     max_abs_eta: 2.5
-    max_abs_dxy:
-      barrel: 0.05
-      endcap: 0.1
-    max_abs_dz:
-      barrel: 0.1
-      endcap: 0.2
 
   - module_name: ElectronMaker
     input_col: Electron
@@ -26,9 +22,10 @@ common_objects: &common_objects
     input_col: Muon
     output_col: tightMuon
     id_working_point: "tightId"
-    min_pt: 15
+    # First-pass SUSY muon veto: tightId, pfIsoId >= tight, and miniPFRelIso_all < 0.2.
+    min_pt: 10
     max_abs_eta: 2.4
-    iso_working_pt: "tight"
+    iso_working_point: "tight"
     max_mini_iso: 0.2
 
   - module_name: MuonMaker
@@ -37,7 +34,7 @@ common_objects: &common_objects
     id_working_point: "looseId"
     min_pt: 5
     max_abs_eta: 2.4
-    iso_working_pt: "loose"
+    iso_working_point: "loose"
     max_mini_iso: 0.2
 
   - module_name: JetFilter
@@ -45,8 +42,21 @@ common_objects: &common_objects
     output_col: goodJet
     include_pu_id: False
     include_jet_id: True
-    min_pt: 25
+    min_pt: 30
     max_abs_eta: 2.4
+
+  - module_name: JetFilter
+    input_col: Jet
+    output_col: htmissJet
+    include_pu_id: False
+    include_jet_id: True
+    min_pt: 30
+    max_abs_eta: 5.0
+
+  - module_name: BJetSelector
+    input_col: goodJet
+    output_col: mediumBJet
+    working_point: M
 
   - module_name: HT
     input_col: Jet
@@ -63,6 +73,28 @@ common_objects: &common_objects
   - module_name: Count
     input_col: goodJet
     output_col: NJet
+
+  - module_name: Count
+    input_col: mediumBJet
+    output_col: NBJet
+
+  - module_name: HTMiss
+    input_col: htmissJet
+    output_col: HTMiss
+    output_phi_col: HTMissPhi
+
+  - module_name: HTMissDeltaPhi
+    jet_col: goodJet
+    htmiss_phi_col: HTMissPhi
+    output_prefix: DeltaPhiHTMissJet
+    max_jets: 4
+
+  - module_name: SearchBin
+    njet_col: NJet
+    nbjet_col: NBJet
+    ht_col: HT
+    htmiss_col: HTMiss
+    output_col: SearchBin
 
   - module_name: Count
     input_col: looseMuon
@@ -113,6 +145,34 @@ common_histograms: &common_histograms
         start: -0.5
         stop: 13.5
         bins: 14
+
+  - module_name: SimpleHistogram
+    hist_name: BJetN
+    input_cols: [NBJet]
+    axes:
+      - name: "$N_{b}$"
+        start: -0.5
+        stop: 6.5
+        bins: 7
+
+  - module_name: SimpleHistogram
+    hist_name: HTMiss
+    input_cols: [HTMiss]
+    axes:
+      - name: "$H_{T}^{\\mathrm{miss}}$"
+        start: 0
+        stop: 3000
+        bins: 60
+        unit: GeV
+
+  - module_name: SimpleHistogram
+    hist_name: SearchBinYield
+    input_cols: [SearchBin]
+    axes:
+      - name: "Search bin"
+        start: 0.5
+        stop: 174.5
+        bins: 174
 
   - module_name: SimpleHistogram
     hist_name: JetQvG
@@ -263,10 +323,44 @@ analyzer:
       min_count: 0
       max_count: 0
 
+    - module_name: PassAllSelection
+      selection_name: photon_veto_not_applied
+      warning: "Photon veto intentionally not applied in this first-pass implementation per advisor guidance. The CMS photon veto mainly keeps the analysis orthogonal to photon + MET SUSY searches and has minimal impact on signal efficiency."
+
     - module_name: NObjFilter
       input_col: goodJet
       selection_name: njets
       min_count: 2
+
+    - module_name: ScalarFilter
+      input_col: HT
+      selection_name: ht_gt_300
+      min_value: 300
+
+    - module_name: ScalarFilter
+      input_col: HTMiss
+      selection_name: htmiss_gt_300
+      min_value: 300
+
+    - module_name: HTMissLessThanHT
+      ht_col: HT
+      htmiss_col: HTMiss
+      selection_name: htmiss_lt_ht
+
+    - module_name: HTMissDeltaPhiSelection
+      njet_col: NJet
+      dphi_prefix: DeltaPhiHTMissJet
+      selection_name: htmiss_dphi
+
+    - module_name: PassAllSelection
+      selection_name: isolated_track_veto_not_applied
+      warning: "IsoTrack veto is not applied in hadronic_susy_testing: remote 2024 input branch availability has not been verified."
+
+    - module_name: ScalarFilter
+      input_col: SearchBin
+      selection_name: search_bin_valid
+      min_value: 0
+
     - module_name: SelectOnColumns
       sel_name: selection
     - *common_histograms
