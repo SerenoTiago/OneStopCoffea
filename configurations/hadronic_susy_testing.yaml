@@ -1,0 +1,293 @@
+common_objects: &common_objects
+  - module_name: JetID
+    input_col: Jet
+    output_col: Jet.jetId
+  - module_name: ElectronMaker
+    input_col: Electron
+    output_col: tightElectron
+    working_point: "tight"
+    min_pt: 15
+    max_abs_eta: 2.5
+    max_abs_dxy:
+      barrel: 0.05
+      endcap: 0.1
+    max_abs_dz:
+      barrel: 0.1
+      endcap: 0.2
+
+  - module_name: ElectronMaker
+    input_col: Electron
+    output_col: looseElectron
+    working_point: "loose"
+    min_pt: 7
+    max_abs_eta: 2.5
+
+  - module_name: MuonMaker
+    input_col: Muon
+    output_col: tightMuon
+    id_working_point: "tightId"
+    min_pt: 15
+    max_abs_eta: 2.4
+    iso_working_pt: "tight"
+    max_mini_iso: 0.2
+
+  - module_name: MuonMaker
+    input_col: Muon
+    output_col: looseMuon
+    id_working_point: "looseId"
+    min_pt: 5
+    max_abs_eta: 2.4
+    iso_working_pt: "loose"
+    max_mini_iso: 0.2
+
+  - module_name: JetFilter
+    input_col: Jet
+    output_col: goodJet
+    include_pu_id: False
+    include_jet_id: True
+    min_pt: 25
+    max_abs_eta: 2.4
+
+  - module_name: HT
+    input_col: Jet
+    output_col: AK4HT
+
+  - module_name: HT
+    input_col: goodJet
+    output_col: HT
+
+  - module_name: Count
+    input_col: Jet
+    output_col: NAK4Jet
+
+  - module_name: Count
+    input_col: goodJet
+    output_col: NJet
+
+  - module_name: Count
+    input_col: looseMuon
+    output_col: NlooseMuon
+
+  - module_name: Count
+    input_col: tightMuon
+    output_col: NtightMuon
+
+  - module_name: Count
+    input_col: looseElectron
+    output_col: NlooseElectron
+
+  - module_name: Count
+    input_col: tightElectron
+    output_col: NtightElectron
+
+common_histograms: &common_histograms
+  - module_name: TopVecHistograms
+    prefix: "Jet"
+    input_col: goodJet
+    max_idx: 6
+
+  - module_name: FourVecHistograms
+    input_col: goodJet
+    hist_name: Jet
+    mass_axis:
+      name: "Jet $m$"
+      start: 0
+      stop: 500
+      bins: 50
+
+  - module_name: SimpleHistogram
+    hist_name: JetHT
+    input_cols: [HT]
+    axes:
+      - name: HT
+        start: 0
+        stop: 3000
+        bins: 60
+        unit: GeV
+    
+  - module_name: SimpleHistogram
+    hist_name: JetN
+    input_cols: [NJet]
+    axes:
+      - name: "$N_{jets}$"
+        start: -0.5
+        stop: 13.5
+        bins: 14
+
+  - module_name: SimpleHistogram
+    hist_name: JetQvG
+    input_cols: [goodJet.btagUParTAK4QvG]
+    axes:
+      - name: "Jet PNetQvG Score"
+        start: 0
+        stop: 1
+        bins: 20
+
+  - module_name: SimpleHistogram
+    hist_name: Jetbtag
+    input_cols: [goodJet.btagUParTAK4B]
+    axes:
+      - name: "Jet UParTB Score"
+        start: 0
+        stop: 1
+        bins: 20
+
+  - module_name: FourVecHistograms
+    input_col: Jet
+    hist_name: AK4Jet
+    mass_axis:
+      name: "AK4Jet"
+      start: 0
+      stop: 500
+      bins: 50
+      unit: "GeV"
+
+  - module_name: SimpleHistogram
+    hist_name: AK4NJet
+    input_cols: [NAK4Jet]
+    axes: 
+      - name: "$N_{AK4Jets}$"
+        start: -0.5
+        stop: 20.5
+        bins: 21
+
+  - module_name: SimpleHistogram
+    hist_name: AK4JetQvG
+    input_cols: [Jet.btagPNetQvG]
+    axes:
+      - name: "AK4Jet PNetQvG Score"
+        start: 0
+        stop: 1
+        bins: 20
+
+  - module_name: SimpleHistogram
+    hist_name: AK4Jetbtag
+    input_cols: [Jet.btagUParTAK4B]
+    axes:
+      - name: "AK4Jet UParTB Score"
+        start: 0
+        stop: 1
+        bins: 20  
+
+  - module_name: SimpleHistogram
+    hist_name: AK4JetID
+    input_cols: [Jet.jetId]
+    axes:
+      - name: "AK4Jet JetID"
+        start: -0.5
+        stop: 6.5
+        bins: 7
+  
+  - module_name: SimpleHistogram
+    hist_name: AK4HT  
+    input_cols: [AK4HT]
+    axes:
+      - name: "AK4Jet $H_{T}$"
+        start: 0
+        stop: 3000
+        bins: 60
+        unit: "GeV"
+
+  - module_name: SimpleHistogram
+    hist_name: looseElectronN
+    input_cols: [NlooseElectron]
+    axes:
+      - name: "$N_{\\text{loose},e}$"
+        start: -0.5
+        stop: 4.5
+        bins: 5
+
+  - module_name: SimpleHistogram
+    hist_name: tightElectronN
+    input_cols: [NtightElectron]
+    axes:
+      - name: "$N_{\\text{tight},e}$"
+        start: -0.5
+        stop: 4.5
+        bins: 5
+
+  - module_name: SimpleHistogram
+    hist_name: looseMuonN
+    input_cols: [NlooseMuon]
+    axes:
+      - name: "$N_{\\text{loose},\\mu}$"
+        start: -0.5
+        stop: 4.5
+        bins: 5
+
+  - module_name: SimpleHistogram
+    hist_name: tightMuonN
+    input_cols: [NtightMuon]
+    axes:
+      - name: "$N_{\\text{tight},\\mu}$"
+        start: -0.5
+        stop: 4.5
+        bins: 5
+
+  - module_name: SimpleHistogram
+    hist_name: puppiMET_pt
+    input_cols: [PuppiMET.pt]
+    axes:
+      - name: "$p_{T}^{\\text{PUPPI MET}}$"
+        start: 0
+        stop: 500
+        bins: 30
+        unit: GeV
+
+  - module_name: SimpleHistogram
+    hist_name: pfMET_pt
+    input_cols: [PFMET.pt]
+    axes:
+      - name: "$p_{T}^{\\text{PF MET}}$"
+        start: 0
+        stop: 500
+        bins: 30
+        unit: GeV
+
+
+analyzer:
+  default_run_builder:
+    strategy_name: NoSystematics
+
+  test:
+    - *common_objects
+    - module_name: NObjFilter
+      input_col: tightElectron
+      selection_name: zero_electron
+      min_count: 0
+      max_count: 0
+
+    - module_name: NObjFilter
+      input_col: tightMuon
+      selection_name: zero_muon
+      min_count: 0
+      max_count: 0
+
+    - module_name: NObjFilter
+      input_col: goodJet
+      selection_name: njets
+      min_count: 2
+    - module_name: SelectOnColumns
+      sel_name: selection
+    - *common_histograms
+
+  SignalOnly:
+    - module_name: SelectAllTriggers
+      sel_name: all_triggers
+
+
+location_priorities: [".*(T0|T1|T2).*","eos"]
+
+event_collections:
+  - dataset: '2stop_1200_2024'
+    pipelines: 
+    - test
+  # - dataset: 'qcd*2024*'
+  #   pipelines:
+  #   - test
+  # - dataset: 'tt_hadronic*2024*'
+  #   pipelines:
+  #   - test
+  # - dataset: 'tt_semilep*2024'
+  #   pipelines:
+  #   - test

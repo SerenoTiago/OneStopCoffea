@@ -968,3 +968,104 @@ class PileupJetIdSF(AnalyzerModule):
 
     def outputs(self, metadata):
         return [Column(("Weights", self.weight_name))]
+
+@define
+class JetID(AnalyzerModule):
+    """
+    This analyzer creates a jetId column, specifically for newer
+    versions of NanoAOD which had it missing due to a bug.
+
+    Parameters
+    ----------
+    input_col : Column
+        Column containing the input jet collection to be processed.
+    output_col: Column
+        Column containing the output jetIds.
+    Notes
+    -----
+    - V12 has different recipe than V13, V14, V15 per JME POG.
+    - Previous versions don't have this issue and are unchanged.
+    - Input collections must be expected to have a jetId column
+      in nanoAOD V11 and below to be used as default.
+    """
+
+    input_col: Column
+    output_col: Column
+
+    def run(self, columns, params):
+        metadata = columns.metadata
+        nanoversion = metadata["other_data"]["nanoversion"]
+        nanoversion = "V"+nanoversion if "V" not in nanoversion else nanoversion
+        jets = columns[self.input_col]
+        if nanoversion in ["V13", "V14", "V15"]:
+            eta = abs(jets.eta)
+            jet_id_tight = ak.where(
+                eta <= 2.6,
+                (jets.neHEF < 0.99) & (jets.neEmEF < 0.9) &
+                (jets.chMultiplicity + jets.neMultiplicity > 1) &
+                (jets.chHEF > 0.01) & (jets.chMultiplicity > 0),
+            ak.where(
+                (eta > 2.6) & (eta <= 2.7),
+                (jets.neHEF < 0.90) & (jets.neEmEF < 0.99),
+            ak.where(
+                (eta > 2.7) & (eta <= 3.0),
+                (jets.neHEF < 0.99),
+            ak.where(
+                eta > 3.0,
+                (jets.neMultiplicity >= 2) & (jets.neEmEF < 0.4),
+                False
+            ))))
+
+            jet_id_tight_lep_veto = ak.where(
+            eta <= 2.7,
+            jet_id_tight & (jets.muEF < 0.8) & (jets.chEmEF < 0.8),
+            jet_id_tight
+            )
+
+            jet_id = ak.where(
+                jet_id_tight & jet_id_tight_lep_veto,
+                6,
+            ak.where(
+                jet_id_tight,
+                2,
+                0
+            ))
+        elif nanoversion == "V12":
+            eta = abs(jets.eta)
+
+            jet_id_tight = ak.where(
+                eta <= 2.7,
+                (jets.jetId & (1 << 1)) > 0,
+            ak.where(
+                (eta > 2.7) & (eta <= 3.0),
+                ((jets.jetId & (1 << 1)) > 0) & (jets.neHEF < 0.99),
+            ak.where(
+                eta > 3.0,
+                ((jets.jetId & (1 << 1)) > 0) & (jets.neEmEF < 0.4),
+                False
+            )))
+
+            jet_id_tight_lep_veto = ak.where(
+                eta <= 2.7,
+                jet_id_tight & (jets.muEF < 0.8) & (jets.chEmEF < 0.8),
+                jet_id_tight
+            )
+
+            jet_id = ak.where(
+                jet_id_tight & jet_id_tight_lep_veto,
+                6,
+            ak.where(
+                jet_id_tight,
+                2,
+                0
+            ))
+        else:
+            jet_id = jets.jetId
+        columns[self.output_col] = jet_id
+        return columns, []
+
+    def inputs(self, metadata):
+        return [self.input_col]
+
+    def outputs(self, metadata):
+        return [self.output_col]

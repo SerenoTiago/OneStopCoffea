@@ -18,13 +18,18 @@ from .registry import TransformHistogram
 
 @define
 class SelectAxesValues(TransformHistogram):
-    select_axes_values: dict[str, list[int] | list[str] | list[float]]
+    select_axes_values: dict[
+        str, int | str | float | list[int] | list[str] | list[float]
+    ]
 
     def __call__(self, items: list[ItemWithMeta]):
         ret = []
         for item, meta in items:
             h = item.histogram
-            keys_vals = list(self.select_axes_values.items())
+            keys_vals = [
+                (key, list(val) if isinstance(val, (list, tuple, set)) else [val])
+                for key, val in self.select_axes_values.items()
+            ]
             keys, vals = list(zip(*keys_vals))
             # new_axes = [x for x in item.axes if x.name not in select_axes_values]
             for p in it.product(*vals):
@@ -469,6 +474,32 @@ class ABCDTransformer(TransformHistogram):
             ret.append(
                 ItemWithMeta(
                     Histogram(name=ph.name, axes=None, histogram=nh), metadata=meta
+                )
+            )
+
+        return ret
+
+@define
+class SumSelectionFlow(TransformHistogram):
+    sum_match_pattern: BasePattern
+    new_meta_fields: dict = field(factory=dict)
+
+    def __call__(self, items):
+        to_sum = []
+        ret = []
+        for itemmeta in items:
+            if self.sum_match_pattern.match(itemmeta.metadata):
+                to_sum.append(itemmeta)
+            else:
+                ret.append(itemmeta)
+        if to_sum:
+            total_flow = ft.reduce(op.add, [x.item for x in to_sum])
+            new_meta = commonDict(to_sum)
+            new_meta = addChain(new_meta, self.new_meta_fields)
+            ret.append(
+                ItemWithMeta(
+                    total_flow,
+                    new_meta,
                 )
             )
 

@@ -14,6 +14,18 @@ from .annotations import labelAxis
 from .common import PlotConfiguration
 from .utils import saveFig, saveFigVariants, scaleYAxis, addLegend
 
+def getYMin(histograms, stacked_hists):
+    all_values = []
+    for item, _ in histograms:
+        all_values.append(item.histogram.values())
+    for item, _ in stacked_hists:
+        all_values.append(item.histogram.values())
+
+    all_values = np.concatenate([v.flatten() for v in all_values])
+    nonzero = all_values[all_values > 0]
+    if len(nonzero) == 0:
+        return None
+    return nonzero.min()
 
 def getRatioAndUnc(num, den, uncertainty_type="poisson-ratio"):
     import hist.intervals as hinter
@@ -42,6 +54,7 @@ def plotOne(
     styler = Styler(style_set)
     fig, ax = plt.subplots()
     h = None
+    style = None
     if stacked_hists:
         stacked_hists = sorted(
             stacked_hists, key=lambda x: x.item.histogram.sum().value
@@ -73,6 +86,8 @@ def plotOne(
                 label="Stacked Unc.",
                 histtype="band",
             )
+            if h is None:
+                h = stacked_total
 
     for item, meta in histograms:
         title = meta.get("title") or meta["dataset_title"]
@@ -88,7 +103,9 @@ def plotOne(
         )
 
     if h is None:
-        h = stacked_hists[0]
+        if not stacked_hists:
+            raise ValueError("No histograms available to plot")
+        h = stacked_hists[0].item.histogram
 
     labelAxis(ax, "y", h.axes, label=pc.y_label)
     labelAxis(ax, "x", h.axes, label=pc.x_label)
@@ -96,11 +113,16 @@ def plotOne(
     all_meta = [x.metadata for x in histograms] + [x.metadata for x in stacked_hists]
 
     ax.set_yscale(scale)
+    if scale == "log":
+            # Ensure small signals are appropriately shown on plots
+            ymin = getYMin(histograms, stacked_hists)
+            if ymin is not None:
+                ax.set_ylim(bottom=ymin * 0.1)
     addLegend(ax, pc)
 
     scaleYAxis(ax)
     # mplhep.yscale_anchored_text(ax, soft_fail=True)
-    if style.y_min:
+    if style is not None and style.y_min:
         ax.set_ylim(bottom=style.y_min)
 
     saveFigVariants(
