@@ -1,0 +1,68 @@
+[
+  {
+    "mass_point": "T2tt_mStop-1250_mLSP-1",
+    "max_rate_integral_relative_error": 1.7562666406012065e-15,
+    "bins": 174,
+    "data_equal_background": true
+  },
+  {
+    "mass_point": "T2tt_mStop-1250_mLSP-100",
+    "max_rate_integral_relative_error": 1.7562666406012065e-15,
+    "bins": 174,
+    "data_equal_background": true
+  },
+  {
+    "mass_point": "T2tt_mStop-1250_mLSP-1100",
+    "max_rate_integral_relative_error": 1.7562666406012065e-15,
+    "bins": 174,
+    "data_equal_background": true
+  },
+  {
+    "mass_point": "T2tt_mStop-1250_mLSP-200",
+    "max_rate_integral_relative_error": 1.7562666406012065e-15,
+    "bins": 174,
+    "data_equal_background": true
+  },
+  {
+    "mass_point": "T2tt_mStop-1250_mLSP-300",
+    "max_rate_integral_relative_error": 1.7562666406012065e-15,
+    "bins": 174,
+    "data_equal_background": true
+  },
+  {
+    "mass_point": "T2tt_mStop-1250_mLSP-400",
+    "max_rate_integral_relative_error": 1.7562666406012065e-15,
+    "bins": 174,
+    "data_equal_background": true
+  },
+  {
+    "mass_point": "T2tt_mStop-1250_mLSP-500",
+    "max_rate_integral_relative_error": 1.7562666406012065e-15,
+    "bins": 174,
+    "data_equal_background": true
+  },
+  {
+    "mass_point": "T2tt_mStop-1250_mLSP-600",
+    "max_rate_integral_relative_error": 1.7562666406012065e-15,
+    "bins": 174,
+    "data_equal_background": true
+  },
+  {
+    "mass_point": "T2tt_mStop-1250_mLSP-700",
+    "max_rate_integral_relative_error": 1.7562666406012065e-15,
+    "bins": 174,
+    "data_equal_background": true
+  },
+  {
+    "mass_point": "T2tt_mStop-1250_mLSP-800",
+    "max_rate_integral_relative_error": 1.7562666406012065e-15,
+    "bins": 174,
+    "data_equal_background": true
+  },
+  {
+    "mass_point": "T2tt_mStop-1250_mLSP-900",
+    "max_rate_integral_relative_error": 1.7562666406012065e-15,
+    "bins": 174,
+    "data_equal_background": true
+  }
+]

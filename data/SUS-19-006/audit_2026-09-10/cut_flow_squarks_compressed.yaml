@@ -1,0 +1,264 @@
+dependent_variables:
+- header:
+    name: Selection
+  qualifiers:
+  - name: SMS
+    value: ''
+  - name: $m_{\widetilde{q}}$
+    value: ''
+  - name: $m_{\widetilde{\chi}_1^0}$
+    value: ''
+  values:
+  - value: 'Njets >= 2           '
+  - value: 'HT > 300 GeV         '
+  - value: 'MHT > 300 GeV        '
+  - value: 'MHT/HT <= 1          '
+  - value: 'Nmuon = 0            '
+  - value: 'NisoTrk-muon = 0     '
+  - value: 'Nelectron = 0        '
+  - value: 'NisoTrk-electron = 0 '
+  - value: 'NisoTrk-hadron = 0   '
+  - value: 'Nphoton = 0          '
+  - value: 'Dphi1 > 0.5          '
+  - value: 'Dphi2 > 0.5          '
+  - value: 'Dphi3 > 0.3          '
+  - value: 'Dphi4 > 0.3          '
+  - value: 'Event quality filter '
+- header:
+    name: Passing fraction
+    units: '%'
+  qualifiers:
+  - name: SMS
+    value: T2tt
+  - name: $m_{\widetilde{q}}$
+    units: GeV
+    value: '600'
+  - name: $m_{\widetilde{\chi}_1^0}$
+    units: GeV
+    value: '400'
+  values:
+  - errors:
+    - label: ''
+      symerror: 0.0
+    value: 99.6
+  - errors:
+    - label: ''
+      symerror: 0.3
+    value: 72.2
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 9.2
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 9.1
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 7.0
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 6.9
+  - errors:
+    - label: ''
+      symerror: 0.1
+    value: 5.4
+  - errors:
+    - label: ''
+      symerror: 0.1
+    value: 5.2
+  - errors:
+    - label: ''
+      symerror: 0.1
+    value: 4.8
+  - errors:
+    - label: ''
+      symerror: 0.1
+    value: 4.7
+  - errors:
+    - label: ''
+      symerror: 0.1
+    value: 4.7
+  - errors:
+    - label: ''
+      symerror: 0.1
+    value: 3.9
+  - errors:
+    - label: ''
+      symerror: 0.1
+    value: 3.4
+  - errors:
+    - label: ''
+      symerror: 0.1
+    value: 3.0
+  - errors:
+    - label: ''
+      symerror: 0.1
+    value: 2.7
+- header:
+    name: Passing fraction
+    units: '%'
+  qualifiers:
+  - name: SMS
+    value: T2bb
+  - name: $m_{\widetilde{q}}$
+    units: GeV
+    value: '600'
+  - name: $m_{\widetilde{\chi}_1^0}$
+    units: GeV
+    value: '450'
+  values:
+  - errors:
+    - label: ''
+      symerror: 0.1
+    value: 95.4
+  - errors:
+    - label: ''
+      symerror: 0.3
+    value: 58.2
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 13.6
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 13.2
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 13.1
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 13.1
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 13.0
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 12.9
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 12.8
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 12.5
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 12.5
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 11.3
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 10.7
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 10.2
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 9.5
+- header:
+    name: Passing fraction
+    units: '%'
+  qualifiers:
+  - name: SMS
+    value: T2qq
+  - name: $m_{\widetilde{q}}$
+    units: GeV
+    value: '1000'
+  - name: $m_{\widetilde{\chi}_1^0}$
+    units: GeV
+    value: '800'
+  values:
+  - errors:
+    - label: ''
+      symerror: 0.2
+    value: 97.8
+  - errors:
+    - label: ''
+      symerror: 0.4
+    value: 83.0
+  - errors:
+    - label: ''
+      symerror: 0.5
+    value: 31.3
+  - errors:
+    - label: ''
+      symerror: 0.5
+    value: 30.2
+  - errors:
+    - label: ''
+      symerror: 0.5
+    value: 30.1
+  - errors:
+    - label: ''
+      symerror: 0.5
+    value: 30.1
+  - errors:
+    - label: ''
+      symerror: 0.5
+    value: 30.0
+  - errors:
+    - label: ''
+      symerror: 0.5
+    value: 29.9
+  - errors:
+    - label: ''
+      symerror: 0.5
+    value: 29.6
+  - errors:
+    - label: ''
+      symerror: 0.5
+    value: 28.8
+  - errors:
+    - label: ''
+      symerror: 0.5
+    value: 28.8
+  - errors:
+    - label: ''
+      symerror: 0.5
+    value: 27.1
+  - errors:
+    - label: ''
+      symerror: 0.5
+    value: 26.0
+  - errors:
+    - label: ''
+      symerror: 0.5
+    value: 25.2
+  - errors:
+    - label: ''
+      symerror: 0.4
+    value: 23.6
+independent_variables:
+- header:
+    name: Step
+  values:
+  - value: 1.0
+  - value: 2.0
+  - value: 3.0
+  - value: 4.0
+  - value: 5.0
+  - value: 6.0
+  - value: 7.0
+  - value: 8.0
+  - value: 9.0
+  - value: 10.0
+  - value: 11.0
+  - value: 12.0
+  - value: 13.0
+  - value: 14.0
+  - value: 15.0

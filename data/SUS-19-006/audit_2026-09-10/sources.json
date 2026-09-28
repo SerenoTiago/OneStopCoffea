@@ -1,0 +1,65 @@
+[
+  {
+    "name": "Yields and pre-fit BG, Njets 2-3",
+    "file": "yields_and_pre_fit_bg_njets_2_3.yaml",
+    "url": "https://www.hepdata.net/download/table/ins1749379/Yields and pre-fit BG, Njets 2-3/yaml",
+    "status": "saved",
+    "sha256": "68d7ceb33ddec938c4fc9dbd2225753599f5ea549d2dc24796b6c4de0d25a96f"
+  },
+  {
+    "name": "Yields and pre-fit BG, Njets 4-5",
+    "file": "yields_and_pre_fit_bg_njets_4_5.yaml",
+    "url": "https://www.hepdata.net/download/table/ins1749379/Yields and pre-fit BG, Njets 4-5/yaml",
+    "status": "saved",
+    "sha256": "bf968e257a45709df9da8b18cd37042ac88471766f8a4696d5569a35b3eb064a"
+  },
+  {
+    "name": "Yields and pre-fit BG, Njets 6-7",
+    "file": "yields_and_pre_fit_bg_njets_6_7.yaml",
+    "url": "https://www.hepdata.net/download/table/ins1749379/Yields and pre-fit BG, Njets 6-7/yaml",
+    "status": "saved",
+    "sha256": "bc3ea5ddb65ce248a6c4839f0c2944f34dde96bd63bcf8a860d3a77ef577079f"
+  },
+  {
+    "name": "Yields and pre-fit BG, Njets 8-9",
+    "file": "yields_and_pre_fit_bg_njets_8_9.yaml",
+    "url": "https://www.hepdata.net/download/table/ins1749379/Yields and pre-fit BG, Njets 8-9/yaml",
+    "status": "saved",
+    "sha256": "4b18b3a4833d8c2ce96fbe8ce46165ab92340aa51eb6992721288dc0cc48b41c"
+  },
+  {
+    "name": "Yields and pre-fit BG, Njets >=10",
+    "file": "yields_and_pre_fit_bg_njets_10.yaml",
+    "url": "https://www.hepdata.net/download/table/ins1749379/Yields and pre-fit BG, Njets >=10/yaml",
+    "status": "saved",
+    "sha256": "796a0a423c43fe3fe5a946ca91ba4516655a7f9c5cd8b91e91c3e7df726fefbe"
+  },
+  {
+    "name": "T2tt efficiency",
+    "file": "t2tt_efficiency.yaml",
+    "url": "https://www.hepdata.net/download/table/ins1749379/T2tt efficiency/yaml",
+    "status": "saved",
+    "sha256": "578daffb28a09e6defd63d4c2d7000f9ecb3f496041d5117363ab642223682a5"
+  },
+  {
+    "name": "Cut flow, squarks, light LSP",
+    "file": "cut_flow_squarks_light_lsp.yaml",
+    "url": "https://www.hepdata.net/download/table/ins1749379/Cut flow, squarks, light LSP/yaml",
+    "status": "saved",
+    "sha256": "51db04bf589a42c6b4098ca1f4080e4fad2bc8d56a031153388878626bd3101a"
+  },
+  {
+    "name": "Cut flow, squarks, compressed",
+    "file": "cut_flow_squarks_compressed.yaml",
+    "url": "https://www.hepdata.net/download/table/ins1749379/Cut flow, squarks, compressed/yaml",
+    "status": "saved",
+    "sha256": "71a0c394816fb3af5c6ceaf10aacf570c232d985689be0b7208db2ce239944d3"
+  },
+  {
+    "name": "CMS Figure 14a ROOT",
+    "file": "CMS-SUS-19-006_Figure_014-a.root",
+    "url": "https://cms-results.web.cern.ch/cms-results/public-results/publications/SUS-19-006/CMS-SUS-19-006_Figure_014-a.root",
+    "status": "saved",
+    "sha256": "37a3eeee0148cd51da4ea6c0b9a2ac7f5f0b10d2dd6a44dcb71d69b4a3b06e5e"
+  }
+]

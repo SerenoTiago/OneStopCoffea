@@ -33,6 +33,22 @@ tramp
 
 logs/
 
+# Local analysis products, including their local layout documentation.
+analysis_products/
+analysis_inputs/
+
+# Machine-local LPC/container and CMSSW environments.
+/CMSSW_*/
+/cmssw/
+/.bashrc
+/.cmslpc-local-conf
+/bootstrap.sh
+/shell
+
+# Large downloaded HEPData tables are local reference inputs.
+/data/SUS-19-006/HEPData-ins1749379-v1-T2tt_cross_section_upper_limits.yaml
+/data/SUS-19-006/audit_2026-09-10/t2tt_efficiency.yaml
+
 
 *.pdf
 *.pth
