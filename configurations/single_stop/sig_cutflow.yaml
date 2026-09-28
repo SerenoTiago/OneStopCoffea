@@ -139,10 +139,12 @@ Postprocessing:
     - name: CutflowTable
       inputs:
         - "*/*/*/selection"
-      key: "{dataset_title}"
-      highlight_rows: [[4,"LightCoral"]]
+      # key: "{dataset_title}"
+      key: "({other_data.stop_mass},{other_data.chargino_mass})"
+      # highlight_rows: [[4,"LightCoral"]]
       format: latex
-      standalone: true
+      # standalone: true
+      cols: [count,abs]
       structure:
         group: {era.name: "*", pipeline: "*"}
       output_name: "{prefix}/{era.name}_{pipeline}.tex"

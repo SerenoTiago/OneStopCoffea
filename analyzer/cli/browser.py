@@ -1,6 +1,8 @@
 from textual.app import App, ComposeResult
 from textual import on
 from textual.reactive import reactive
+from textual_plotext import PlotextPlot
+from textual.containers import Vertical, Horizontal
 from textual.widgets import (
     Header,
     Tree,
@@ -96,6 +98,7 @@ class ResultBrowser(App):
         self.viewer = ResultViewer()
 
     def compose(self) -> ComposeResult:
+        """Compose the application layout."""
         with Vertical():
             yield Header()
             with Horizontal():
@@ -132,7 +135,6 @@ class ResultBrowser(App):
                 if out is not None:
                     log_widget.write(repr(out))
             except SyntaxError:
-
                 f = io.StringIO()
                 with redirect_stdout(f):
                     exec(cmd, globals(), local_vars)
@@ -216,8 +218,7 @@ class HistogramViewer(Widget):
         return options
 
     def compose(self) -> ComposeResult:
-        from textual.containers import Vertical, Horizontal
-        from textual_plotext import PlotextPlot
+        """Compose the histogram viewer controls and plot."""
 
         with Vertical():
             with Horizontal(classes="axis_controls", id="hist_control_grid"):
@@ -247,7 +248,6 @@ class HistogramViewer(Widget):
 
     @on(Select.Changed)
     def updatePlot(self, event=None):
-        from textual_plotext import PlotextPlot
 
         try:
             plot_widget = self.query_one("#hist_plot", PlotextPlot)

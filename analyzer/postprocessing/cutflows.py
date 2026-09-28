@@ -60,14 +60,18 @@ class PlotSelectionFlow(BasePostprocessor):
         )
 
 
+ALLOWED_COLS = Literal["count", "rel", "abs"]
+
+
 @define
 class CutflowTable(BasePostprocessor):
     output_name: str
     format: Literal["markdown", "csv", "latex"] = "csv"
     key: str = "{dataset_name}"
     standalone: bool = False
-    highlight_rows: list[tuple[int,str]] | None  = None
+    highlight_rows: list[tuple[int, str]] | None = None
     count_type: Literal["weighted", "raw", "both"] = "both"
+    cols: list[ALLOWED_COLS] = ["count", "rel", "abs"]
 
     def getRunFuncs(self, group, prefix=None):
         common_meta = commonDict(group)
@@ -85,13 +89,15 @@ class CutflowTable(BasePostprocessor):
             standalone=self.standalone,
             highlight_rows=self.highlight_rows,
             count_type=self.count_type,
+            cols=self.cols,
         )
 
 
-def makeCutflowDf(group, key="{dataset_name}", count_type="both"):
+def makeCutflowDf(group, key="{dataset_name}", count_type="both", cols=None):
     import pandas as pd
     import numpy as np
 
+    cols = cols or ["count", "rel", "abs"]
     dataset_cutflows = {}
     dataset_raw_cutflows = {}
     cut_order = None
@@ -117,19 +123,21 @@ def makeCutflowDf(group, key="{dataset_name}", count_type="both"):
         values = df.loc[:, (dataset_name, eff_source)]
         values_array = values.to_numpy(dtype=float)
         previous_array = values.shift(1).to_numpy(dtype=float)
-        df.loc[:, (dataset_name, "Eff. Abs.")] = np.divide(
-            values_array,
-            values_array[0],
-            out=np.zeros_like(values_array, dtype=float),
-            where=values_array[0] != 0,
-        )
-        df.loc[:, (dataset_name, "Eff. Rel.")] = np.divide(
-            values_array,
-            previous_array,
-            out=np.zeros_like(values_array, dtype=float),
-            where=previous_array != 0,
-        )
-        df.loc[df.index[0], (dataset_name, "Eff. Rel.")] = 1.0
+        if "abs" in cols:
+            df.loc[:, (dataset_name, "Eff. Abs.")] = np.divide(
+                values_array,
+                values_array[0],
+                out=np.zeros_like(values_array, dtype=float),
+                where=values_array[0] != 0,
+            )
+        if "rel" in cols:
+            df.loc[:, (dataset_name, "Eff. Rel.")] = np.divide(
+                values_array,
+                previous_array,
+                out=np.zeros_like(values_array, dtype=float),
+                where=previous_array != 0,
+            )
+            df.loc[df.index[0], (dataset_name, "Eff. Rel.")] = 1.0
     df.sort_index(axis=1, level=[0, 1], ascending=[True, False], inplace=True)
     return df
 
@@ -154,19 +162,24 @@ def makeAndSaveCutflowTable(
     standalone=False,
     highlight_rows=None,
     count_type="both",
+    cols=None,
 ):
     import numpy as np
 
+    cols = cols or ["count", "rel", "abs"]
+
     highlight_rows = highlight_rows or []
 
-    df = makeCutflowDf(group, key=key, count_type=count_type)
+    df = makeCutflowDf(group, key=key, count_type=count_type, cols=cols)
     output_path = Path(output_path)
     output_path.parent.mkdir(exist_ok=True, parents=True)
 
     s = (
         df.style.apply(
             lambda x: np.where(
-                (np.arange(len(x)) % 6 > 2), "background-color: lightgray", ""
+                (np.arange(len(x)) % (2 * len(cols))) >= len(cols),
+                "background-color: lightgray",
+                "",
             ),
             axis=1,
         )
@@ -174,7 +187,7 @@ def makeAndSaveCutflowTable(
         .format_index(escape="latex", axis=0)
         # .format_index(escape="latex",axis=1)
     )
-    for row,color in highlight_rows:
+    for row, color in highlight_rows:
         s = s.apply(
             lambda x: np.where(
                 (np.arange(len(x)) == row), f"background-color: {color}", ""
