@@ -52,26 +52,58 @@ class SelectOnColumns(AnalyzerModule):
 
         def andCuts(all_cuts):
             if not all_cuts:
-                return ak.ones_like(cuts[0])
+                return ak.ones_like(getCol(cuts[0]), dtype=bool)
             ret = getCol(all_cuts[0])
             for cut in all_cuts[1:]:
                 ret = ret & getCol(cut)
             return ret
 
+        def eventWeights():
+            if "Weights" not in columns.fields:
+                return ak.ones_like(columns.events.event, dtype=float)
+
+            weights = columns["Weights"]
+            if not weights.fields:
+                return ak.ones_like(columns.events.event, dtype=float)
+
+            fields = iter(weights.fields)
+            ret = weights[next(fields)]
+            for field in fields:
+                ret = ret * weights[field]
+            return ret
+
+        def weightedCount(mask, weights):
+            return ak.sum(weights[mask], axis=0)
+
         for s in columns.pipeline_data.get("Selections", {}):
             columns.pipeline_data["Selections"][s] = True
 
         initial = ak.num(columns.events, axis=0)
+        weights = eventWeights()
+        initial_weighted = ak.sum(weights, axis=0)
 
         ret = columns[Column("Selection") + cuts[0]]
         cutflow = {"initial": initial, cuts[0]: ak.count_nonzero(ret, axis=0)}
+        weighted_cutflow = {
+            "initial": initial_weighted,
+            cuts[0]: weightedCount(ret, weights),
+        }
         for name in cuts[1:]:
             ret = ret & getCol(name)
             cutflow[name] = ak.count_nonzero(ret, axis=0)
+            weighted_cutflow[name] = weightedCount(ret, weights)
 
         onecut = {cut: ak.count_nonzero(getCol(cut)) for cut in cuts}
+        weighted_onecut = {
+            cut: weightedCount(getCol(cut), weights)
+            for cut in cuts
+        }
         n_minus_one = {
             cut: ak.count_nonzero(andCuts(cuts[:i] + cuts[i + 1 :]), axis=0)
+            for i, cut in enumerate(cuts)
+        }
+        weighted_n_minus_one = {
+            cut: weightedCount(andCuts(cuts[:i] + cuts[i + 1 :]), weights)
             for i, cut in enumerate(cuts)
         }
         columns.filter(ret)
@@ -84,6 +116,9 @@ class SelectOnColumns(AnalyzerModule):
                     cutflow=cutflow,
                     one_cut=onecut,
                     n_minus_one=n_minus_one,
+                    weighted_cutflow=weighted_cutflow,
+                    weighted_one_cut=weighted_onecut,
+                    weighted_n_minus_one=weighted_n_minus_one,
                 )
             ]
         else:
@@ -91,9 +126,12 @@ class SelectOnColumns(AnalyzerModule):
 
     def inputs(self, metadata):
         if self.selection_names is None:
-            return [Column(("Selection"))]
+            return [Column(("Selection")), Column("Weights")]
         else:
-            return [Column("Selection") + x for x in self.selection_names]
+            return [
+                *[Column("Selection") + x for x in self.selection_names],
+                Column("Weights"),
+            ]
 
     def outputs(self, metadata):
         return "EVENTS"

@@ -22,25 +22,34 @@ class ImmediateExecutor(Executor):
 
         for task in tasks:
             logger.info(f"Running task with output {task.output_name}")
-            file_set = task.file_set
-            file_set.updateFromCache()
-            needed_updates = file_set.getNeededUpdatesFuncs()
-            for update in needed_updates:
-                update()
-                file_set.updateFileInfo(update())
-                if (
-                    max_sample_events
-                    and file_set.total_file_events >= max_sample_events
-                ):
-                    break
-            chunked = file_set.toChunked(max_sample_events or self.chunk_size)
-            for chunk in chunked.iterChunks():
-                if self.deepcopy_analyzer:
-                    analyzer = copy.deepcopy(orig_analyzer)
-                else:
-                    analyzer = orig_analyzer
-                result = analyzer.run(chunk, task.metadata, task.pipelines)
-                result.finalize(basicFinalizer)
-                yield CompletedTask(result.toBytes(), task.metadata, task.output_name)
-                if max_sample_events:
-                    break
+            try:
+                file_set = task.file_set
+                file_set.updateFromCache()
+                needed_updates = file_set.getNeededUpdatesFuncs()
+                for update in needed_updates:
+                    update()
+                    file_set.updateFileInfo(update())
+                    if (
+                        max_sample_events
+                        and file_set.total_file_events >= max_sample_events
+                    ):
+                        break
+                chunked = file_set.toChunked(max_sample_events or self.chunk_size)
+                for chunk in chunked.iterChunks():
+                    if self.deepcopy_analyzer:
+                        analyzer = copy.deepcopy(orig_analyzer)
+                    else:
+                        analyzer = orig_analyzer
+                    result = analyzer.run(chunk, task.metadata, task.pipelines)
+                    result.finalize(basicFinalizer)
+                    yield CompletedTask(
+                        result.toBytes(), task.metadata, task.output_name
+                    )
+                    if max_sample_events:
+                        break
+            except Exception:
+                # A single unreachable/missing remote file should not abort the whole run.
+                logger.warning(
+                    f"Skipping task {task.output_name} due to an error", exc_info=True
+                )
+                continue

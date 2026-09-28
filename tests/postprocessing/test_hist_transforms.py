@@ -3,9 +3,22 @@ import hist
 import numpy as np
 from analyzer.postprocessing.transforms.hist_transforms import (
     NormalizeSystematicByProjection,
+    SelectAxesValues,
 )
 from analyzer.core.results import Histogram
 from analyzer.utils.structure_tools import ItemWithMeta
+
+
+def test_select_axes_values_skips_empty_growth_axis():
+    h = hist.Hist(
+        hist.axis.StrCategory([], name="variation", growth=True),
+        hist.axis.Regular(5, 0, 10, name="x"),
+        storage="double",
+    )
+    item = Histogram(name="empty", axes=[], histogram=h)
+    transform = SelectAxesValues(select_axes_values={"variation": "central"})
+
+    assert transform([ItemWithMeta(item, {"dataset_name": "empty"})]) == []
 
 
 def test_normalize_systematics_by_projection():

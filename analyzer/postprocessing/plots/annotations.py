@@ -2,6 +2,7 @@ import mplhep
 
 from .common import PlotConfiguration
 import matplotlib.patheffects as path_effects
+from matplotlib import rcParams
 
 
 def _getSampleCategory(all_meta):
@@ -68,6 +69,9 @@ def addCMSBits(
         text += "\n" + extra_text
 
     if exp:
+        fontsize = None
+        if plot_configuration.cms_text_size_scale is not None:
+            fontsize = rcParams["font.size"] * plot_configuration.cms_text_size_scale
         artists = mplhep.label.exp_text(
             text=text,
             exp=exp,
@@ -75,10 +79,14 @@ def addCMSBits(
             ax=ax,
             loc=plot_configuration.cms_text_pos,
             color=text_color or plot_configuration.cms_text_color,
+            fontsize=fontsize,
         )
     else:
         loc = plot_configuration.cms_text_pos
         color = text_color or plot_configuration.cms_text_color
+        fontsize = None
+        if plot_configuration.cms_text_size_scale is not None:
+            fontsize = rcParams["font.size"] * plot_configuration.cms_text_size_scale
 
         lumi_artist = None
         if info_text is not None:
@@ -88,6 +96,7 @@ def addCMSBits(
                 xpad=0,
                 ypad=0,
                 ax=ax,
+                fontsize=fontsize,
             )
 
         loc_map = {0: "over left", 1: "upper left", 2: "upper left", 3: "over left"}
@@ -98,6 +107,7 @@ def addCMSBits(
             ax=ax,
             fontstyle="italic",
             color=color,
+            fontsize=fontsize,
         )
         artists = (label_artist, None, lumi_artist, None)
 

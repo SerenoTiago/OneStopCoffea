@@ -14,8 +14,18 @@ from .plots.plots_1d import plotDictAsBars
 from attrs import define, field
 
 
-def _getCutflow(x):
-    return getattr(x, "cutflow")
+def _getCutflow(x, count_type="weighted"):
+    if count_type == "weighted" and getattr(x, "weighted_cutflow", None) is not None:
+        return x.weighted_cutflow
+    return x.cutflow
+
+
+def _getRelativeCutflow(x, count_type="weighted"):
+    cutflow = _getCutflow(x, count_type=count_type)
+    initial = cutflow["initial"]
+    if initial == 0:
+        return {cut: 0 for cut in cutflow}
+    return {cut: value / initial for cut, value in cutflow.items()}
 
 
 @define
@@ -24,6 +34,9 @@ class PlotSelectionFlow(BasePostprocessor):
     style_set: str | StyleSet = field(factory=StyleSet)
     scale: Literal["log", "linear"] = "linear"
     normalize: bool = False
+    count_type: Literal["weighted", "raw"] = "weighted"
+    relative_to_initial: bool = False
+    show_errors: bool = True
 
     def getRunFuncs(self, group, prefix=None):
         common_meta = commonDict(group)
@@ -31,15 +44,18 @@ class PlotSelectionFlow(BasePostprocessor):
             self.output_name, **dict(dictToDot(common_meta)), prefix=prefix
         )
         pc = self.plot_configuration.makeFormatted(common_meta)
+        getter = _getRelativeCutflow if self.relative_to_initial else _getCutflow
 
         yield ft.partial(
             plotDictAsBars,
             group,
             common_meta,
             output_path,
-            getter=_getCutflow,
+            getter=ft.partial(getter, count_type=self.count_type),
             style_set=self.style_set,
             normalize=self.normalize,
+            scale=self.scale,
+            show_errors=self.show_errors,
             plot_configuration=pc,
         )
 
@@ -51,6 +67,7 @@ class CutflowTable(BasePostprocessor):
     key: str = "{dataset_name}"
     standalone: bool = False
     highlight_rows: list[tuple[int,str]] | None  = None
+    count_type: Literal["weighted", "raw", "both"] = "both"
 
     def getRunFuncs(self, group, prefix=None):
         common_meta = commonDict(group)
@@ -66,18 +83,22 @@ class CutflowTable(BasePostprocessor):
             format=self.format,
             key=self.key,
             standalone=self.standalone,
-            highlight_rows=self.highlight_rows
+            highlight_rows=self.highlight_rows,
+            count_type=self.count_type,
         )
 
 
-def makeCutflowDf(group, key="{dataset_name}"):
+def makeCutflowDf(group, key="{dataset_name}", count_type="both"):
     import pandas as pd
+    import numpy as np
 
     dataset_cutflows = {}
+    dataset_raw_cutflows = {}
     cut_order = None
     for selection_flow, metadata in group:
         k = dotFormat(key, **dict(dictToDot(metadata)))
-        dataset_cutflows[k] = _getCutflow(selection_flow)
+        dataset_cutflows[k] = _getCutflow(selection_flow, "weighted")
+        dataset_raw_cutflows[k] = _getCutflow(selection_flow, "raw")
         if cut_order is None:
             cut_order = list(selection_flow.cuts)
         else:
@@ -85,16 +106,30 @@ def makeCutflowDf(group, key="{dataset_name}"):
                 raise ValueError("Cutflows are not consistent across datasets.")
     all_data = {}
     for dataset_name, cutflow in dataset_cutflows.items():
-        all_data[dataset_name, "Events"] = cutflow
+        if count_type in ("weighted", "both"):
+            all_data[dataset_name, "Yield"] = cutflow
+        if count_type in ("raw", "both"):
+            all_data[dataset_name, "Raw"] = dataset_raw_cutflows[dataset_name]
 
     df = pd.DataFrame(all_data)
-    for col in df.columns:
-        df.loc[:, (col[0], "Eff. Abs.")] = (
-            df.loc[:, (col[0], "Events")] / df.loc[:, (col[0], "Events")].iloc[0]
+    for dataset_name in dataset_cutflows:
+        eff_source = "Yield" if (dataset_name, "Yield") in df.columns else "Raw"
+        values = df.loc[:, (dataset_name, eff_source)]
+        values_array = values.to_numpy(dtype=float)
+        previous_array = values.shift(1).to_numpy(dtype=float)
+        df.loc[:, (dataset_name, "Eff. Abs.")] = np.divide(
+            values_array,
+            values_array[0],
+            out=np.zeros_like(values_array, dtype=float),
+            where=values_array[0] != 0,
         )
-        df.loc[:, (col[0], "Eff. Rel.")] = (
-            df.loc[:, (col[0], "Events")] / df.loc[:, (col[0], "Events")].shift(1)
-        ).fillna(1)
+        df.loc[:, (dataset_name, "Eff. Rel.")] = np.divide(
+            values_array,
+            previous_array,
+            out=np.zeros_like(values_array, dtype=float),
+            where=previous_array != 0,
+        )
+        df.loc[df.index[0], (dataset_name, "Eff. Rel.")] = 1.0
     df.sort_index(axis=1, level=[0, 1], ascending=[True, False], inplace=True)
     return df
 
@@ -118,12 +153,13 @@ def makeAndSaveCutflowTable(
     key="{dataset_name}",
     standalone=False,
     highlight_rows=None,
+    count_type="both",
 ):
     import numpy as np
 
     highlight_rows = highlight_rows or []
 
-    df = makeCutflowDf(group, key=key)
+    df = makeCutflowDf(group, key=key, count_type=count_type)
     output_path = Path(output_path)
     output_path.parent.mkdir(exist_ok=True, parents=True)
 
@@ -149,7 +185,7 @@ def makeAndSaveCutflowTable(
     if format == "csv":
         df.to_csv(output_path)
     elif format == "markdown":
-        s.to_markdown(output_path, convert_css=True, **kwargs)
+        s.to_markdown(output_path, convert_css=True)
     elif format == "latex":
         text = s.to_latex(None, convert_css=True)
         if standalone:

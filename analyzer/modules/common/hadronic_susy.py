@@ -77,7 +77,9 @@ def leading_jet_delta_phi(htmiss_phi, jets, max_jets=4):
 def njet_bin_index(njet):
     ret = np.full(len(njet), INVALID_SEARCH_BIN, dtype=np.int64)
     for idx, (low, high) in enumerate(NJET_BINS):
-        ret = np.where(_in_range(njet, low, high), idx, ret)
+        # Jet counts have inclusive integer endpoints; kinematic ranges do not.
+        exclusive_high = None if high is None else high + 1
+        ret = np.where(_in_range(njet, low, exclusive_high), idx, ret)
     return ret
 
 

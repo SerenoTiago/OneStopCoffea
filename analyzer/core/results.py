@@ -428,6 +428,9 @@ class SelectionFlow(ResultBase):
     cutflow: dict[str, Scalar]
     n_minus_one: dict[str, Scalar] | None = None
     one_cut: dict[str, Scalar] | None = None
+    weighted_cutflow: dict[str, Scalar] | None = None
+    weighted_n_minus_one: dict[str, Scalar] | None = None
+    weighted_one_cut: dict[str, Scalar] | None = None
 
     def approxSize(self):
         return 30 * len(self.cuts)
@@ -437,23 +440,49 @@ class SelectionFlow(ResultBase):
             raise RuntimeError()
         for x in self.cutflow:
             self.cutflow[x] = self.cutflow[x] + other.cutflow[x]
+        if self.weighted_cutflow is not None:
+            for x in self.weighted_cutflow:
+                self.weighted_cutflow[x] = (
+                    self.weighted_cutflow[x] + other.weighted_cutflow[x]
+                )
         if self.n_minus_one is not None:
             for x in self.n_minus_one:
                 self.n_minus_one[x] = self.n_minus_one[x] + other.n_minus_one[x]
+        if self.weighted_n_minus_one is not None:
+            for x in self.weighted_n_minus_one:
+                self.weighted_n_minus_one[x] = (
+                    self.weighted_n_minus_one[x] + other.weighted_n_minus_one[x]
+                )
         if self.one_cut is not None:
             for x in self.one_cut:
                 self.one_cut[x] = self.one_cut[x] + other.one_cut[x]
+        if self.weighted_one_cut is not None:
+            for x in self.weighted_one_cut:
+                self.weighted_one_cut[x] = (
+                    self.weighted_one_cut[x] + other.weighted_one_cut[x]
+                )
         return self
 
     def iscale(self, value):
-        for x in self.cutflow:
-            self.cutflow[x] = value * self.cutflow[x]
-        if self.n_minus_one is not None:
-            for x in self.n_minus_one:
-                self.n_minus_one[x] = value * self.n_minus_one[x]
-        if self.one_cut is not None:
-            for x in self.one_cut:
-                self.one_cut[x] = value * self.one_cut[x]
+        if self.weighted_cutflow is None:
+            for x in self.cutflow:
+                self.cutflow[x] = value * self.cutflow[x]
+            if self.n_minus_one is not None:
+                for x in self.n_minus_one:
+                    self.n_minus_one[x] = value * self.n_minus_one[x]
+            if self.one_cut is not None:
+                for x in self.one_cut:
+                    self.one_cut[x] = value * self.one_cut[x]
+            return self
+
+        for x in self.weighted_cutflow:
+            self.weighted_cutflow[x] = value * self.weighted_cutflow[x]
+        if self.weighted_n_minus_one is not None:
+            for x in self.weighted_n_minus_one:
+                self.weighted_n_minus_one[x] = value * self.weighted_n_minus_one[x]
+        if self.weighted_one_cut is not None:
+            for x in self.weighted_one_cut:
+                self.weighted_one_cut[x] = value * self.weighted_one_cut[x]
         return self
 
     def finalize(self, finalizer):

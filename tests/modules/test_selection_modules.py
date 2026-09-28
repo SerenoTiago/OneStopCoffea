@@ -58,6 +58,72 @@ class TestSelectOnColumns(BaseModuleTest):
         assert cutflow.cutflow["filter1"] == 2
         assert cutflow.cutflow["filter2"] == 1
 
+    def testWeightedCutflowUsesWeightProduct(self, module):
+        from tests.modules.fixtures import createMockEvents, createMockTrackedColumns
+
+        events = createMockEvents(n_events=3)
+        columns = createMockTrackedColumns(events)
+        columns.pipeline_data["Selections"] = {}
+
+        columns["Selection", "filter1"] = ak.Array([True, True, False])
+        columns["Selection", "filter2"] = ak.Array([True, False, True])
+        columns["Weights", "nominal"] = ak.Array([1.0, 2.0, 4.0])
+        columns["Weights", "sf"] = ak.Array([10.0, 10.0, 10.0])
+
+        _, results = self.runModule(module, columns)
+        cutflow = results[0]
+
+        assert cutflow.cutflow["initial"] == 3
+        assert cutflow.cutflow["filter1"] == 2
+        assert cutflow.cutflow["filter2"] == 1
+        assert cutflow.weighted_cutflow["initial"] == 70.0
+        assert cutflow.weighted_cutflow["filter1"] == 30.0
+        assert cutflow.weighted_cutflow["filter2"] == 10.0
+
+    def testScalePreservesRawCountsAndScalesWeightedCounts(self, module):
+        from tests.modules.fixtures import createMockEvents, createMockTrackedColumns
+
+        events = createMockEvents(n_events=2)
+        columns = createMockTrackedColumns(events)
+        columns.pipeline_data["Selections"] = {}
+        columns["Selection", "filter1"] = ak.Array([True, True])
+        columns["Selection", "filter2"] = ak.Array([True, False])
+        columns["Weights", "nominal"] = ak.Array([2.0, 3.0])
+
+        _, results = self.runModule(module, columns)
+        cutflow = results[0]
+        cutflow.iscale(10.0)
+
+        assert cutflow.cutflow["initial"] == 2
+        assert cutflow.cutflow["filter1"] == 2
+        assert cutflow.cutflow["filter2"] == 1
+        assert cutflow.weighted_cutflow["initial"] == 50.0
+        assert cutflow.weighted_cutflow["filter1"] == 50.0
+        assert cutflow.weighted_cutflow["filter2"] == 20.0
+
+    def testPassThroughSelectionDoesNotChangeCutflow(self):
+        from tests.modules.fixtures import createMockEvents, createMockTrackedColumns
+
+        events = createMockEvents(n_events=3)
+        columns = createMockTrackedColumns(events)
+        columns.pipeline_data["Selections"] = {}
+        columns["Selection", "filter1"] = ak.Array([True, False, True])
+        columns["Selection", "pass_through"] = ak.Array([True, True, True])
+        columns["Weights", "nominal"] = ak.Array([1.0, 10.0, 100.0])
+
+        module = SelectOnColumns(
+            sel_name="test_selection_summary",
+            selection_names=["filter1", "pass_through"],
+        )
+        _, results = self.runModule(module, columns)
+        cutflow = results[0]
+
+        assert cutflow.cutflow["filter1"] == cutflow.cutflow["pass_through"]
+        assert (
+            cutflow.weighted_cutflow["filter1"]
+            == cutflow.weighted_cutflow["pass_through"]
+        )
+
 
 class TestNObjFilter(BaseModuleTest):
     @pytest.fixture

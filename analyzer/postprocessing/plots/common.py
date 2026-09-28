@@ -11,9 +11,11 @@ class PlotConfiguration:
     cms_text: str | list[str] | None = None
     cms_text_pos: int = 2
     cms_text_color: Optional[str] = None
+    cms_text_size_scale: float | None = None
 
     x_scale: Optional[str] = "linear"
     y_scale: Optional[str] = "linear"
+    y_top_margin_factor: float | None = None
 
     x_label: Optional[str] = None
     y_label: Optional[str] = None
@@ -23,6 +25,7 @@ class PlotConfiguration:
     legend_fill_color: mplt.ColorType | None = None
     legend_fill_alpha: float | None = None
     legend_font: str | None = None
+    legend_font_size: float | None = None
     legend_loc: str = "upper right"
     legend_num_cols: int = 1
 

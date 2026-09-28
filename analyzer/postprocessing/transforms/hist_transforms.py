@@ -38,7 +38,18 @@ class SelectAxesValues(TransformHistogram):
                     meta,
                     {"axis_params": addChain(meta.get("axis_params", {}), u)},
                 )
-                u = dict(zip(keys, [hist.loc(x) for x in p]))
+                u = {}
+                skip_empty = False
+                for key, val in zip(keys, p):
+                    if val in h.axes[key]:
+                        u[key] = hist.loc(val)
+                    elif len(h.axes[key]) == 0:
+                        skip_empty = True
+                        break
+                    else:
+                        raise KeyError(f"{val!r} not in axis {key!r}")
+                if skip_empty:
+                    continue
 
                 ret.append(
                     ItemWithMeta(

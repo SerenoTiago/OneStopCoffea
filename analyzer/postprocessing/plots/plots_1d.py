@@ -12,7 +12,7 @@ from analyzer.postprocessing.style import Styler
 # from ..grouping import doFormatting
 from .annotations import labelAxis
 from .common import PlotConfiguration
-from .utils import saveFig, saveFigVariants, scaleYAxis, addLegend
+from .utils import saveFig, saveFigVariants, scaleYAxis, addLegend, addYTopMargin
 
 def getYMin(histograms, stacked_hists):
     all_values = []
@@ -121,6 +121,7 @@ def plotOne(
     addLegend(ax, pc)
 
     scaleYAxis(ax)
+    addYTopMargin(ax, pc.y_top_margin_factor)
     # mplhep.yscale_anchored_text(ax, soft_fail=True)
     if style is not None and style.y_min:
         ax.set_ylim(bottom=style.y_min)
@@ -155,6 +156,7 @@ def plotDictAsBars(
     ax_name=None,
     normalize=False,
     scale="linear",
+    show_errors=True,
     plot_configuration=None,
 ):
     pc = plot_configuration or PlotConfiguration()
@@ -171,9 +173,9 @@ def plotDictAsBars(
             ax=ax,
             label=title,
             density=normalize,
+            yerr=show_errors,
             **style.get(),
         )
-    ax.legend()
     labelAxis(ax, "y", h.axes)
     labelAxis(ax, "x", h.axes)
     ax.tick_params(axis="x", rotation=90)
@@ -182,6 +184,7 @@ def plotDictAsBars(
     addLegend(ax, pc)
     mplhep.sort_legend(ax=ax)
     scaleYAxis(ax)
+    addYTopMargin(ax, pc.y_top_margin_factor)
     saveFigVariants(
         fig,
         ax,

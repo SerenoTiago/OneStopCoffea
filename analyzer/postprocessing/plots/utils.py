@@ -41,6 +41,18 @@ def scaleYAxis(ax):
     return ax
 
 
+def addYTopMargin(ax, factor):
+    if factor is None:
+        return ax
+    bottom, top = ax.get_ylim()
+    if ax.get_yscale() == "log":
+        if bottom > 0 and top > bottom:
+            ax.set_ylim(bottom, top * factor)
+    else:
+        ax.set_ylim(bottom, top + (top - bottom) * (factor - 1.0))
+    return ax
+
+
 def makeDict(x):
     if isinstance(x, (dict, ChainMap)):
         return {k: makeDict(v) for k, v in x.items()}
@@ -113,11 +125,16 @@ def saveFigVariants(
 
 def addLegend(ax: Axes, cfg: PlotConfiguration, **legend_kwargs):
     legend_loc = cfg.legend_loc
+    prop = {}
+    if cfg.legend_font:
+        prop["family"] = cfg.legend_font
+    if cfg.legend_font_size:
+        prop["size"] = cfg.legend_font_size
 
     legend = ax.legend(
         loc=legend_loc,
         ncol=cfg.legend_num_cols,
-        prop={"family": cfg.legend_font} if cfg.legend_font else None,
+        prop=prop or None,
         **legend_kwargs,
     )
     frame = legend.get_frame()

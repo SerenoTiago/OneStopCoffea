@@ -2,7 +2,12 @@ import pytest
 import awkward as ak
 from analyzer.core.columns import Column
 from analyzer.modules.common.muons import MuonMaker, IdWps, IsoWps
-from analyzer.modules.common.electrons import ElectronMaker, CutBasedWPs
+from analyzer.modules.common.electrons import ElectronMaker, CutBasedWPs as ElectronWPs
+from analyzer.modules.common.photons import (
+    PhotonMaker,
+    CutBasedWPs as PhotonWPs,
+    pass_cut_based_bitmap,
+)
 from tests.modules.base_module_test import BaseModuleTest
 from tests.modules.fixtures import assertColumnExists
 
@@ -49,7 +54,7 @@ class TestElectronMaker(BaseModuleTest):
         return ElectronMaker(
             input_col=Column("Electron"),
             output_col=Column("GoodElectron"),
-            working_point=CutBasedWPs.medium,
+            working_point=ElectronWPs.medium,
             min_pt=30.0,
             max_abs_eta=2.5,
         )
@@ -65,6 +70,43 @@ class TestElectronMaker(BaseModuleTest):
         assert ak.all(output_electrons.pt > 30.0)
         assert ak.all(abs(output_electrons.eta) < 2.5)
         assert ak.all(ak.num(output_electrons) <= ak.num(input_electrons))
+
+    def testInputsOutputs(self, module, mockMetadata):
+        self.assertInputsCorrect(module, mockMetadata)
+        self.assertOutputsCorrect(module, mockMetadata)
+
+
+class TestPhotonMaker(BaseModuleTest):
+    @pytest.fixture
+    def module(self):
+        return PhotonMaker(
+            input_col=Column("Photon"),
+            output_col=Column("GoodPhoton"),
+            working_point=PhotonWPs.medium,
+            min_pt=100.0,
+            max_abs_eta=2.5,
+            require_electron_veto=True,
+        )
+
+    def testModuleRuns(self, module, mockColumns):
+        self.assertModuleRunsWithoutError(module, mockColumns)
+
+    def testFilteringLogic(self, module, mockColumns):
+        output_columns, _ = self.runModule(module, mockColumns)
+        assert "GoodPhoton" in output_columns.fields
+        input_photons = mockColumns["Photon"]
+        output_photons = output_columns["GoodPhoton"]
+        assert ak.all(output_photons.pt > 100.0)
+        assert ak.all(abs(output_photons.eta) < 2.5)
+        assert ak.all(output_photons.electronVeto)
+        assert ak.all(ak.num(output_photons) <= ak.num(input_photons))
+
+    def testCutBasedBitmap(self):
+        bitmap = ak.Array([[0b111, 0b011, 0b001, 0b000]])
+        medium_passed = pass_cut_based_bitmap(bitmap, PhotonWPs.medium)
+        tight_passed = pass_cut_based_bitmap(bitmap, PhotonWPs.tight)
+        assert ak.to_list(medium_passed) == [[True, True, False, False]]
+        assert ak.to_list(tight_passed) == [[True, False, False, False]]
 
     def testInputsOutputs(self, module, mockMetadata):
         self.assertInputsCorrect(module, mockMetadata)

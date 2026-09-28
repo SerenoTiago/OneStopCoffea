@@ -7,6 +7,7 @@ from analyzer.modules.common.hadronic_susy import (
     delta_phi,
     htmiss_pt_phi,
     leading_jet_delta_phi,
+    njet_bin_index,
     search_bin_id,
 )
 
@@ -97,3 +98,41 @@ def test_search_bin_rejects_htmiss_greater_than_ht():
 
     assert bins[0] == INVALID_SEARCH_BIN
     assert bins[1] == INVALID_SEARCH_BIN
+
+
+def test_jet_categories_include_both_integer_endpoints():
+    assert njet_bin_index(np.arange(0, 13)).tolist() == [
+        -1, -1, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 4
+    ]
+    # Published bin IDs for Nb=0, 350<=MHT<600 and 600<=HT<1200.
+    assert search_bin_id(
+        njet=list(range(2, 12)),
+        nbjet=[0] * 10,
+        ht=[800.0] * 10,
+        htmiss=[400.0] * 10,
+    ).tolist() == [5, 5, 35, 35, 75, 75, 113, 113, 145, 145]
+
+
+def test_restored_odd_jet_counts_preserve_kinematic_exclusions():
+    # The low-HT intervals at >=8 jets remain excluded for even and odd counts.
+    assert search_bin_id(
+        njet=[7, 8, 9, 10, 7, 8, 9, 10],
+        nbjet=[0] * 8,
+        ht=[400.0] * 4 + [500.0] * 4,
+        htmiss=[325.0] * 4 + [400.0] * 4,
+    ).tolist() == [71, -1, -1, -1, 74, -1, -1, -1]
+    assert search_bin_id(
+        njet=[3, 5, 7, 9],
+        nbjet=[0] * 4,
+        ht=[500.0, 500.0, 500.0, 500.0],
+        htmiss=[500.0, 600.0, 500.0, 600.0],
+    ).tolist() == [-1] * 4
+
+
+def test_continuous_kinematic_edges_remain_half_open():
+    assert search_bin_id(
+        njet=[3] * 6,
+        nbjet=[0] * 6,
+        ht=[800.0, 800.0, 800.0, 800.0, 1000.0, 1700.0],
+        htmiss=[299.0, 300.0, 350.0, 600.0, 850.0, 850.0],
+    ).tolist() == [-1, 2, 5, 7, 9, 10]
