@@ -1,7 +1,7 @@
 - name: qcd_inclusive_2024
   title: QCD
   sample_type: MC
-  era: 2024
+  era: run2
   other_data:
     nanoversion: "V15"
   samples:

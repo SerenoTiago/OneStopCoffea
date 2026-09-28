@@ -19,20 +19,52 @@ Postprocessing:
       inputs:
         - "*/pipelines/*/*selection"
       scale: log
-      normalize: True
+      normalize: False
+      count_type: weighted
       plot_configuration:
         <<: *default_plot_config
         extra_text: "{pipeline}"
+        cms_text_size_scale: 0.5
+        y_top_margin_factor: 2.0
+        legend_font_size: 9
+        legend_loc: upper right
       structure:
         select: {type: SelectionFlow}
-        group: {era.name: "*", pipeline: "*", name: "*", dataset_name: "*"}
-        transforms:
-          - name: SumSelectionFlow
-            sum_match_pattern: {dataset_name: "tt*"}
-            new_meta_fields:
-              dataset_name: "tt"
-              title: "$t\\overline{t}$"
-      output_name: "plots/{era.name}/{pipeline}/{name}_cutflow_{dataset_name}.png"
+        group: {era.name: "*", pipeline: "*", name: "*"}
+      output_name: "analysis_products/plots/{era.name}/{pipeline}/{name}_cutflow_weighted.png"
+      # output_name: "analysis_products/plots/{era.name}/{pipeline}/{name}_cutflow_weighted.png"
+
+    - name: PlotSelectionFlow
+      inputs:
+        - "*/pipelines/*/*selection"
+      scale: log
+      normalize: False
+      count_type: weighted
+      relative_to_initial: True
+      show_errors: False
+      plot_configuration:
+        <<: *default_plot_config
+        extra_text: "{pipeline}"
+        y_label: "Cumulative efficiency"
+        cms_text_size_scale: 0.5
+        y_top_margin_factor: 2.0
+        legend_font_size: 9
+        legend_loc: upper right
+      structure:
+        select: {type: SelectionFlow}
+        group: {era.name: "*", pipeline: "*", name: "*"}
+      output_name: "analysis_products/plots/{era.name}/{pipeline}/{name}_cutflow_cumulative_efficiency.png"
+
+    - name: CutflowTable
+      inputs:
+        - "*/pipelines/susy_full_validation/selection"
+      count_type: both
+      format: csv
+      key: "{dataset_name}"
+      structure:
+        select: {type: SelectionFlow, dataset_name: "*", pipeline: "susy_full_validation"}
+        group: {era.name: "*", pipeline: "*", name: "*"}
+      output_name: "analysis_products/plots/{era.name}/{pipeline}/{name}_cutflow.csv"
 
     - name: Histogram1D
       inputs:
@@ -42,7 +74,7 @@ Postprocessing:
       show_info: False
       style_set: *default_style_set
       structure:
-        select: {dataset_name: "*", name: "re:^(?!.*selection$|all_triggers$|.*2d).*"}
+        select: {dataset_name: "*", name: "SearchBinYield"}
         group: {pipeline: "*", era.name: "*", name: "*"}
         subgroups:
           unstacked: {select: {dataset_name: "re:^(data.*|2stop.*)$"}}
@@ -55,7 +87,26 @@ Postprocessing:
             new_meta_fields:
               dataset_name: "tt"
               title: "$t\\overline{t}$"
-      output_name: "plots/{era.name}/{pipeline}/{name}"
+      output_name: "analysis_products/plots/{era.name}/{pipeline}/{name}"
+
+    - name: PaperSearchBinYield
+      inputs:
+        - "*/*/*/*"
+      ratio_ylim: [-1, 3]
+      signal_dataset_patterns: ["2stop*", "signal*"]
+      plot_configuration:
+        <<: *default_plot_config
+        cms_text_pos: 0
+        cms_text_size_scale: 0.7
+        legend_font_size: 10
+        legend_loc: upper right
+      structure:
+        select: {dataset_name: "*", name: "SearchBinYield", pipeline: "susy_full_validation"}
+        group: {pipeline: "*", era.name: "*", name: "*"}
+        transforms:
+          - name: SelectAxesValues
+            select_axes_values: {"variation": "central"}
+      output_name: "analysis_products/plots/{era.name}/{pipeline}/{name}_Paper.png"
 
     - name: CutflowTable
       output_name: signal_yield
@@ -64,4 +115,24 @@ Postprocessing:
       structure:
         select: {dataset_name: "*", pipeline: "*"}
         group: {era.name: "*", name: "*"}
-      output_name: "plots/{era.name}/signal_trigger_yields.csv"
+      output_name: "analysis_products/plots/{era.name}/signal_trigger_yields.csv"
+
+    - name: CombineDatacard
+      channel: bins_hadsusy
+      inputs:
+        - "*/*/*/SearchBinYield"
+      structure:
+        select: {dataset_name: "*", name: "SearchBinYield"}
+        group: {pipeline: "*", era.name: "*", name: "*"}
+        subgroups:
+          signal: {select: {dataset_name: "2stop_1200_2024"}}
+          observation: {select: {dataset_name: "re:^$"}}
+          background:
+            select:
+              or_exprs:
+                - {dataset_name: "qcd_inclusive_2024"}
+                - {dataset_name: "tt_hadronic_2024"}
+                - {dataset_name: "tt_semileptonic_2024"}
+                - {dataset_name: "wjets_2024"}
+                - {dataset_name: "zjets_2024"}
+      output_name: "analysis_products/plots/{era.name}/{pipeline}/{name}_combined_datacard"

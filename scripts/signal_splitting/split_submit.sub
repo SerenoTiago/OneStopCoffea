@@ -22,6 +22,6 @@ when_to_transfer_output = ON_EXIT
 transfer_input_files = scripts/signal_splitting/split_signals.cpp
 preserve_relative_paths = true
 
-arguments=$(FILE) split_signals/$(YEAR)
+arguments=$(FILE) analysis_inputs/signals/split/$(YEAR)
 
 queue FILE,YEAR from scripts/signal_splitting/2022_signals.txt

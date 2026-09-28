@@ -6,9 +6,12 @@
 #include <memory>
 #include <fstream>
 #include <filesystem>
+#include <stdexcept>
+#include <optional>
 #include "TFile.h"
 #include "TTree.h"
 #include "ROOT/RDataFrame.hxx"
+#include "ROOT/RSnapshotOptions.hxx"
 
 
 std::filesystem::path getUniquePath(const std::filesystem::path& p){
@@ -21,6 +24,7 @@ std::filesystem::path getUniquePath(const std::filesystem::path& p){
     while(std::filesystem::exists(ret)){
         ret  = parent / (stem.string() + "_" + std::to_string(i)) ;
         ret.replace_extension(ext);
+        ++i;
     }
     return ret;
 }
@@ -38,7 +42,13 @@ std::vector<std::string> getFiles(){
 
 }
 
-void processOneFile(const std::filesystem::path& infile, const std::filesystem::path& outdir){
+bool matchesRequestedModel(const std::string& branch_name, const std::optional<std::string>& requested_model){
+    if(!requested_model) {return true;}
+    return branch_name == *requested_model || branch_name == "GenModel_" + *requested_model;
+}
+
+
+void processOneFile(const std::filesystem::path& infile, const std::filesystem::path& outdir, const std::optional<std::string>& requested_model = std::nullopt){
     std::cout << std::format("Processing {} file to outdirectory {}\n", infile.string(), outdir.string());
 
     auto base = infile.stem().string();
@@ -52,29 +62,47 @@ void processOneFile(const std::filesystem::path& infile, const std::filesystem::
         if(name.find("GenModel") == std::string::npos){
             other_names.push_back(name);
         } else {
-            gen_names.push_back(name);
+            if(matchesRequestedModel(name, requested_model)){
+                gen_names.push_back(name);
+            }
 
         }
     }
 
+    if(gen_names.empty()){
+        throw std::runtime_error(requested_model ? std::format("Could not find requested model {}", *requested_model) : "No GenModel columns found");
+    }
+
     for(const auto& name : gen_names){
-        auto out_file_base = "signal" + name.substr(8,name.size()-1);
-        auto try_out_path =  outdir / out_file_base;
         auto filtered = rdf.Filter([](bool x){return x;}, {name});
         const auto final_name = getUniquePath(outdir / base / ( std::string("signal") + name.substr(8,name.size()-1) + ".root"));
         std::filesystem::create_directories(final_name.parent_path());
         std::cout << std::format("Saving {} to {}\n", name, final_name.string());
-        filtered.Snapshot("Events", final_name.string(), other_names);
+        ROOT::RDF::RSnapshotOptions opts;
+        opts.fLazy = false;
+        opts.fAutoFlush = 1000;
+        opts.fCompressionLevel = 0;
+        try {
+            filtered.Snapshot("Events", final_name.string(), other_names, opts);
+        } catch(const std::exception& e) {
+            std::cerr << std::format("Failed while saving {}: {}\n", name, e.what());
+            throw;
+        }
     }
 }
 
 
 int main(int argc, char* argv[]) {
-    if(argc != 3){
+    if(argc != 3 && argc != 4){
+        std::cerr << std::format("Usage: {} INPUT OUTPUT_DIR [MODEL]\n", argv[0]);
         return 1;
     }
     std::string fname(argv[1]);
     std::string outdir(argv[2]);
-    processOneFile(fname, outdir);
+    std::optional<std::string> model;
+    if(argc == 4){
+        model = argv[3];
+    }
+    processOneFile(fname, outdir, model);
     return 0;
 }

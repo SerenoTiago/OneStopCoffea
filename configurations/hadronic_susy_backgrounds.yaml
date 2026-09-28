@@ -262,7 +262,7 @@ common_histograms: &common_histograms
         start: -0.5
         stop: 6.5
         bins: 7
-
+  
   - module_name: SimpleHistogram
     hist_name: AK4HT  
     input_cols: [AK4HT]
@@ -402,10 +402,6 @@ analyzer:
 location_priorities: [".*(T0|T1|T2).*","eos"]
 
 event_collections:
-  - dataset: '2stop_1200_2024'
-    pipelines:
-    - susy_full_validation
-
   - dataset: 'qcd*2024*'
     pipelines:
     - susy_full_validation
@@ -417,7 +413,7 @@ event_collections:
   - dataset: 'tt_semilep*2024'
     pipelines:
     - susy_full_validation
-  
+
   - dataset: 'wjets*2024*'
     pipelines:
     - susy_full_validation
@@ -427,17 +423,8 @@ event_collections:
     - susy_full_validation
 
 
-
 ### Running through ./osca ###
 
-# Test run:
-# RUN=26-07-29_hadsusy_10k_DASsignaltest
-# ./osca run -e imm-10000 --max-sample-events 10000 configurations/hadronic_susy_testing.yaml "$RUN"
-
-# Full run:
-# tmux new -s hadsusy
-# RUN=26-07-29_hadsusy_full_photon_isotrack
-# ./osca run -e lpc-dask-condor-4G-100000 configurations/hadronic_susy_testing.yaml "$RUN"
-
-# Postprocessing:
-# ./osca postprocess configurations/hadronic_susy_testing_post.yaml "$RUN"/*.result --parallel 4
+# Full Run 2-luminosity projection:
+# RUN=26-08-30_hadsusy_1250_run2
+# ./osca run -e lpc-dask-condor-4G-100000 configurations/hadronic_susy_backgrounds.yaml "$RUN"

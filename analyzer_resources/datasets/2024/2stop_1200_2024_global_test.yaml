@@ -1,0 +1,12 @@
+- name: 2stop_1200_2024_global_test
+  title: "2 stop 1200 GeV"
+  sample_type: MC
+  era: '2024'
+  other_data:
+    nanoversion: "V15"
+  samples:
+  - name: SMS-2Stop_Par-mStop-1200_TuneCP5_13p6TeV_madgraphMLM-pythia8
+    n_events: 488217
+    x_sec: 0.7526
+    files:
+    - root://cms-xrd-global.cern.ch//store/mc/RunIII2024Summer24NanoAODv15/SMS-2Stop_Par-mStop-1200_TuneCP5_13p6TeV_madgraphMLM-pythia8/NANOAODSIM/150X_mcRun3_2024_realistic_v2-v1/100000/624134b4-1901-4471-b93d-76e7d308946e.root
