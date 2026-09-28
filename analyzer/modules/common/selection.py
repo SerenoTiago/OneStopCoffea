@@ -60,11 +60,11 @@ class SelectOnColumns(AnalyzerModule):
 
         def eventWeights():
             if "Weights" not in columns.fields:
-                return ak.ones_like(columns.events.event, dtype=float)
+                return ak.ones_like(getCol(cuts[0]), dtype=float)
 
             weights = columns["Weights"]
             if not weights.fields:
-                return ak.ones_like(columns.events.event, dtype=float)
+                return ak.ones_like(getCol(cuts[0]), dtype=float)
 
             fields = iter(weights.fields)
             ret = weights[next(fields)]
