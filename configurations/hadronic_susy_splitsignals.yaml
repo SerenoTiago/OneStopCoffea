@@ -394,11 +394,6 @@ analyzer:
       sel_name: selection
     - *common_histograms
 
-  SignalOnly:
-    - module_name: SelectAllTriggers
-      sel_name: all_triggers
-
-
 location_priorities: [".*(T0|T1|T2).*","eos"]
 
 event_collections:
@@ -420,4 +415,4 @@ event_collections:
 # ./osca run -e lpc-dask-condor-4G-100000 configurations/hadronic_susy_splitsignals.yaml "$RUN"
 
 # Postprocessing:
-# ./osca postprocess configurations/hadronic_susy_testing_post.yaml "$RUN"/*.result --parallel 4
+# ./osca postprocess configurations/hadronic_susy_postprocessing.yaml "$RUN"/*.result --parallel 4

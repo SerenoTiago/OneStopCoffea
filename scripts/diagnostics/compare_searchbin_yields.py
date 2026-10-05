@@ -4,7 +4,7 @@ background/observed values from background_comparison_174_bins.csv.
 
 Usage:
     uv run --no-sync python3 scripts/diagnostics/compare_searchbin_yields.py \\
-        --before analysis_products/old_results/26-08-30_hadsusy_1250_run2 \\
+        --before analysis_products/old_results/26-08-30_hadsusy_1250_run3_projection_137fb \\
         --after analysis_products/old_results/26-09-10_hadsusy_backgrounds_jetbins_fixed \\
         --reference docs/investigations/t2tt_comparison_2026-09-10/background_comparison_174_bins.csv \\
         --output-csv docs/investigations/t2tt_comparison_2026-09-10/background_comparison_174_bins_before_after.csv \\

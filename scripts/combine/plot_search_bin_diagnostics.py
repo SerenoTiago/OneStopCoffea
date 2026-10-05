@@ -48,7 +48,12 @@ def parse_args() -> argparse.Namespace:
         default=0.90,
         help="Fraction of cumulative S^2/B used to mark important bins",
     )
-    parser.add_argument("--lumi", type=float, default=137.0)
+    parser.add_argument(
+        "--lumi",
+        type=float,
+        required=True,
+        help="Run-3 integrated luminosity used to scale the input shapes, in fb^-1",
+    )
     parser.add_argument("--energy", type=float, default=13.6)
     return parser.parse_args()
 

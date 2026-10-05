@@ -32,7 +32,6 @@ Postprocessing:
         select: {type: SelectionFlow}
         group: {era.name: "*", pipeline: "*", name: "*"}
       output_name: "analysis_products/plots/{era.name}/{pipeline}/{name}_cutflow_weighted.png"
-      # output_name: "analysis_products/plots/{era.name}/{pipeline}/{name}_cutflow_weighted.png"
 
     - name: PlotSelectionFlow
       inputs:
@@ -107,32 +106,3 @@ Postprocessing:
           - name: SelectAxesValues
             select_axes_values: {"variation": "central"}
       output_name: "analysis_products/plots/{era.name}/{pipeline}/{name}_Paper.png"
-
-    - name: CutflowTable
-      output_name: signal_yield
-      inputs:
-        - "*/pipelines/SignalOnly/all_triggers"
-      structure:
-        select: {dataset_name: "*", pipeline: "*"}
-        group: {era.name: "*", name: "*"}
-      output_name: "analysis_products/plots/{era.name}/signal_trigger_yields.csv"
-
-    - name: CombineDatacard
-      channel: bins_hadsusy
-      inputs:
-        - "*/*/*/SearchBinYield"
-      structure:
-        select: {dataset_name: "*", name: "SearchBinYield"}
-        group: {pipeline: "*", era.name: "*", name: "*"}
-        subgroups:
-          signal: {select: {dataset_name: "2stop_1200_2024"}}
-          observation: {select: {dataset_name: "re:^$"}}
-          background:
-            select:
-              or_exprs:
-                - {dataset_name: "qcd_inclusive_2024"}
-                - {dataset_name: "tt_hadronic_2024"}
-                - {dataset_name: "tt_semileptonic_2024"}
-                - {dataset_name: "wjets_2024"}
-                - {dataset_name: "zjets_2024"}
-      output_name: "analysis_products/plots/{era.name}/{pipeline}/{name}_combined_datacard"

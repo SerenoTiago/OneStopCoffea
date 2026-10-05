@@ -1,11 +1,11 @@
 - name: tt_semileptonic_2024
   title: "$t\\overline{t}$ Semileptonic"
   sample_type: MC
-  era: run2
+  era: "2024"
   other_data:
     nanoversion: "V15"
   samples:
-  - name: TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8
-    n_events: 493513663
-    das_path: /TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAOD-140X_mcRun3_2024_realistic_v26-v2/NANOAODSIM
-    x_sec: 407800
+  - name: TTtoLNu2Q
+    n_events: 484475057
+    das_path: /TTtoLNu2Q_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 404500

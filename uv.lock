@@ -157,6 +157,15 @@ wheels = [
 ]
 
 [[package]]
+name = "astroid"
+version = "4.3.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/61/be/ae2dbb9687591b236dfa45113812c8b9616f4a49318ec4ca6dc927fdf21f/astroid-4.3.2.tar.gz", hash = "sha256:8cdaf5b7f3f4f39557ae05ed8b0852136b43a04ab686db7d39255b206233677a", size = 441025, upload-time = "2026-09-25T20:54:04.543Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/13/9f/9948796a11806a209b7658d8dbe1a344d3de41b7965925dd296a90d65b63/astroid-4.3.2-py3-none-any.whl", hash = "sha256:6d7b483f37281a697fa0878a9eaaa3dbefb302970e90c680712bf746a4ebb3a1", size = 287411, upload-time = "2026-09-25T20:54:02.909Z" },
+]
+
+[[package]]
 name = "asttokens"
 version = "3.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -399,7 +408,7 @@ wheels = [
 
 [[package]]
 name = "coffea"
-version = "2026.5.0"
+version = "2026.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -407,9 +416,6 @@ dependencies = [
     { name = "cachetools" },
     { name = "cloudpickle" },
     { name = "correctionlib" },
-    { name = "dask", extra = ["array"] },
-    { name = "dask-awkward" },
-    { name = "dask-histogram" },
     { name = "fsspec" },
     { name = "hist" },
     { name = "ipywidgets" },
@@ -423,6 +429,7 @@ dependencies = [
     { name = "pandas" },
     { name = "pyarrow" },
     { name = "pydantic" },
+    { name = "pyyaml" },
     { name = "requests" },
     { name = "rich" },
     { name = "scipy" },
@@ -431,12 +438,24 @@ dependencies = [
     { name = "uproot" },
     { name = "vector" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cf/99/d42f57bf88cd7b03935aee949dda9c86550d8bcc88488e15804fe4efc422/coffea-2026.5.0.tar.gz", hash = "sha256:1bcee0c4fefb05a1a7e1942dca71c14d2715fa2eaa558ab540d55f36d85545db", size = 27629005, upload-time = "2026-05-25T08:08:40.991Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/d4/9d0d3bde546435ccb1dd917b9ca6501834f5e3b4c5852c1abb59c7c11203/coffea-2026.9.0.tar.gz", hash = "sha256:7dfc1b54d9d1533c8a5bd8a5786d13272ea1a170b0817061d4478f721aedae04", size = 30371771, upload-time = "2026-09-13T20:04:21.591Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9c/e3/4c603b753613f9c1abde16de325d401093b33ae008d00f3c37ab636c6fc2/coffea-2026.5.0-py3-none-any.whl", hash = "sha256:355d0b94bde3bf42f2439769d7447d1599f33eeb59d5f9e0d130224758a9d0d1", size = 309170, upload-time = "2026-05-25T08:08:37.272Z" },
+    { url = "https://files.pythonhosted.org/packages/5b/02/f08c70c4810f3d127c36d8968ce5d165ebd5b1c36d40c7447c8f9c9c6d6f/coffea-2026.9.0-py3-none-any.whl", hash = "sha256:6023c71abd06897af418a901ce9723c1120fb4f6432bfb9cc54229499c66d694", size = 370214, upload-time = "2026-09-13T20:04:19.232Z" },
 ]
 
 [package.optional-dependencies]
+dask = [
+    { name = "bokeh" },
+    { name = "dask", extra = ["dataframe"] },
+    { name = "distributed" },
+]
+dask-awkward = [
+    { name = "bokeh" },
+    { name = "dask", extra = ["dataframe"] },
+    { name = "dask-awkward" },
+    { name = "dask-histogram" },
+    { name = "distributed" },
+]
 rucio = [
     { name = "rucio-clients" },
 ]
@@ -556,8 +575,10 @@ wheels = [
 ]
 
 [package.optional-dependencies]
-array = [
+dataframe = [
     { name = "numpy" },
+    { name = "pandas" },
+    { name = "pyarrow" },
 ]
 
 [[package]]
@@ -778,6 +799,22 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/51/51/17e911502eca35df09ad726f041aa0b1e250f6b34978edc4c1539a0d6c42/fsspec_xrootd-0.5.1.tar.gz", hash = "sha256:76f2b3a0cfa58e2b26c2b67cf72769169f1eed44294ca98ec0648d19e45bfd85", size = 24382, upload-time = "2025-03-14T15:13:04.922Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/4e/1d/427a53caccfdd867f2ae90444553633be264eed6f12307e6bc90daf9c16f/fsspec_xrootd-0.5.1-py3-none-any.whl", hash = "sha256:c92c700931801ca2530802f609468649e35db37158322feaa50bae547aaa0917", size = 13991, upload-time = "2025-03-14T15:13:03.795Z" },
+]
+
+[[package]]
+name = "furo"
+version = "2025.12.19"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "accessible-pygments" },
+    { name = "beautifulsoup4" },
+    { name = "pygments" },
+    { name = "sphinx" },
+    { name = "sphinx-basic-ng" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ec/20/5f5ad4da6a5a27c80f2ed2ee9aee3f9e36c66e56e21c00fde467b2f8f88f/furo-2025.12.19.tar.gz", hash = "sha256:188d1f942037d8b37cd3985b955839fea62baa1730087dc29d157677c857e2a7", size = 1661473, upload-time = "2025-12-19T17:34:40.889Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f4/b2/50e9b292b5cac13e9e81272c7171301abc753a60460d21505b606e15cf21/furo-2025.12.19-py3-none-any.whl", hash = "sha256:bb0ead5309f9500130665a26bee87693c41ce4dbdff864dbfb6b0dae4673d24f", size = 339262, upload-time = "2025-12-19T17:34:38.905Z" },
 ]
 
 [[package]]
@@ -1722,7 +1759,7 @@ dependencies = [
     { name = "cattrs" },
     { name = "click" },
     { name = "cloudpickle" },
-    { name = "coffea", extra = ["rucio", "xrootd"] },
+    { name = "coffea", extra = ["dask", "dask-awkward", "rucio", "xrootd"] },
     { name = "dask" },
     { name = "diskcache" },
     { name = "distributed" },
@@ -1754,6 +1791,7 @@ notebooks = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "furo" },
     { name = "ipykernel" },
     { name = "isort" },
     { name = "pydata-sphinx-theme" },
@@ -1762,6 +1800,7 @@ dev = [
     { name = "pytest" },
     { name = "scalene" },
     { name = "sphinx" },
+    { name = "sphinx-autoapi" },
     { name = "sphinx-autodoc-typehints" },
     { name = "ty" },
 ]
@@ -1773,7 +1812,7 @@ requires-dist = [
     { name = "cattrs", specifier = ">=25.3.0" },
     { name = "click", specifier = ">=8.3.0" },
     { name = "cloudpickle", specifier = ">=3.1.2" },
-    { name = "coffea", extras = ["xrootd", "rucio"], specifier = ">=2026.5.0" },
+    { name = "coffea", extras = ["xrootd", "dask", "dask-awkward", "rucio"], specifier = ">=2026.7.0" },
     { name = "dask", specifier = ">=2025.3.0" },
     { name = "diskcache", specifier = ">=5.6.3" },
     { name = "distributed", specifier = ">=2025.3.0" },
@@ -1798,6 +1837,7 @@ provides-extras = ["condor", "lpc", "notebooks"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "furo", specifier = ">=2025.12.19" },
     { name = "ipykernel", specifier = ">=7.1.0" },
     { name = "isort", specifier = ">=7.0.0" },
     { name = "pydata-sphinx-theme", specifier = ">=0.15.4" },
@@ -1806,6 +1846,7 @@ dev = [
     { name = "pytest", specifier = ">=9.0.1" },
     { name = "scalene", specifier = ">=2.0.1" },
     { name = "sphinx", specifier = ">=8.2.3" },
+    { name = "sphinx-autoapi", specifier = ">=3.8.0" },
     { name = "sphinx-autodoc-typehints", specifier = ">=3.6.2" },
     { name = "ty", specifier = ">=0.0.8" },
 ]
@@ -2497,6 +2538,21 @@ wheels = [
 ]
 
 [[package]]
+name = "sphinx-autoapi"
+version = "3.8.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "astroid" },
+    { name = "jinja2" },
+    { name = "pyyaml" },
+    { name = "sphinx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/09/5e/7b42f3f774aa116741b8031b740c854612ed7dd7d616695e934a2b7fb94f/sphinx_autoapi-3.8.1.tar.gz", hash = "sha256:04643fc50485039294ace8b660d0d1b821a1686824a975725a5106e8cf1fb30b", size = 58898, upload-time = "2026-08-23T17:04:25.612Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/72/4e/e49564ab6f38341921ae855451aed2ba9915f61c43780200d5aebb57ae4d/sphinx_autoapi-3.8.1-py3-none-any.whl", hash = "sha256:9a3bd3ee1ba82d537f1620a3922292d43ee8b9ff9c69bc198965ac4bcd5a6775", size = 35975, upload-time = "2026-08-23T17:04:24.168Z" },
+]
+
+[[package]]
 name = "sphinx-autodoc-typehints"
 version = "3.6.2"
 source = { registry = "https://pypi.org/simple" }
@@ -2506,6 +2562,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/97/51/6603ed3786a2d52366c66f49bc8afb31ae5c0e33d4a156afcb38d2bac62c/sphinx_autodoc_typehints-3.6.2.tar.gz", hash = "sha256:3d37709a21b7b765ad6e20a04ecefcb229b9eb0007cb24f6ebaa8a4576ea7f06", size = 37574, upload-time = "2026-01-02T21:25:28.216Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e5/6a/877e8a6ea52fc86d88ce110ebcfe4f8474ff590d8a8d322909673af3da7b/sphinx_autodoc_typehints-3.6.2-py3-none-any.whl", hash = "sha256:9e70bee1f487b087c83ba0f4949604a4630bee396e263a324aae1dc4268d2c0f", size = 20853, upload-time = "2026-01-02T21:25:26.853Z" },
+]
+
+[[package]]
+name = "sphinx-basic-ng"
+version = "1.0.0b2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "sphinx" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/98/0b/a866924ded68efec7a1759587a4e478aec7559d8165fac8b2ad1c0e774d6/sphinx_basic_ng-1.0.0b2.tar.gz", hash = "sha256:9ec55a47c90c8c002b5960c57492ec3021f5193cb26cebc2dc4ea226848651c9", size = 20736, upload-time = "2023-07-08T18:40:54.166Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3c/dd/018ce05c532a22007ac58d4f45232514cd9d6dd0ee1dc374e309db830983/sphinx_basic_ng-1.0.0b2-py3-none-any.whl", hash = "sha256:eb09aedbabfb650607e9b4b68c9d240b90b1e1be221d6ad71d61c52e29f7932b", size = 22496, upload-time = "2023-07-08T18:40:52.659Z" },
 ]
 
 [[package]]

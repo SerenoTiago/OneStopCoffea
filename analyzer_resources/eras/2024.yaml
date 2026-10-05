@@ -39,6 +39,7 @@
     name: Collisions24_BCDEFGHI_goldenJSON
 
   trigger_names:
+    METMHT: PFMETNoMu120_PFMHTNoMu120_IDTight
     250HT4J: PFHT250_QuadPFJet25
     250HT4J2B: PFHT250_QuadPFJet25_PNet2BTagMean0p55
 

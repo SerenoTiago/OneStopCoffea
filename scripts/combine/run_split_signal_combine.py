@@ -58,6 +58,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Continue after a failed point instead of stopping immediately.",
     )
+    parser.add_argument(
+        "--significance-only",
+        action="store_true",
+        help="Run expected Asimov significance only; skip AsymptoticLimits.",
+    )
     return parser.parse_args()
 
 
@@ -87,6 +92,7 @@ def combine_container_command(
             "eval $(scramv1 runtime -sh) && "
             f"cd {shell_quote(str(point_dir))} && "
             f"combine -M {method} {shell_quote(datacard.name)}"
+            + (" -t -1 --expectSignal=1" if method == "Significance" else "")
         ),
     ]
 
@@ -186,7 +192,7 @@ def main() -> int:
                 point_dir / f"{datacard.stem}_significance.log",
                 args.dry_run,
             )
-            if rc == 0:
+            if rc == 0 and not args.significance_only:
                 rc = run_and_log(
                     combine_container_command(
                         point_dir,

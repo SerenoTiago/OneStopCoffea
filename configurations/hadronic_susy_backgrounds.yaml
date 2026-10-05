@@ -1,4 +1,6 @@
 common_objects: &common_objects
+  - module_name: PosNegGenWeight
+
   - module_name: JetID
     input_col: Jet
     output_col: Jet.jetId
@@ -336,6 +338,10 @@ analyzer:
 
   susy_full_validation:
     - *common_objects
+    - module_name: SimpleHLT
+      triggers: [METMHT]
+      selection_name: met_mht_trigger
+
     - module_name: NObjFilter
       input_col: tightElectron
       selection_name: zero_electron
@@ -394,11 +400,6 @@ analyzer:
       sel_name: selection
     - *common_histograms
 
-  SignalOnly:
-    - module_name: SelectAllTriggers
-      sel_name: all_triggers
-
-
 location_priorities: [".*(T0|T1|T2).*","eos"]
 
 event_collections:
@@ -425,6 +426,6 @@ event_collections:
 
 ### Running through ./osca ###
 
-# Full Run 2-luminosity projection:
-# RUN=26-08-30_hadsusy_1250_run2
+# Full Run-3 2024 analysis (109.95 fb^-1):
+# RUN=analysis_products/results/YYYY-MM-DD_run3_2024_109p95fb_backgrounds
 # ./osca run -e lpc-dask-condor-4G-100000 configurations/hadronic_susy_backgrounds.yaml "$RUN"

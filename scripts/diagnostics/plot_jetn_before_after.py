@@ -3,7 +3,7 @@ directories, e.g. before and after the njet_bin_index inclusive-endpoint fix.
 
 Usage:
     uv run --no-sync python3 scripts/diagnostics/plot_jetn_before_after.py \\
-        --before analysis_products/old_results/26-08-30_hadsusy_1250_run2 \\
+        --before analysis_products/old_results/26-08-30_hadsusy_1250_run3_projection_137fb \\
         --after analysis_products/old_results/26-09-10_hadsusy_jetbins_fixed/signal \\
         --sample-glob 'signal_T2tt_1250_100' \\
         --hist-name JetN \\

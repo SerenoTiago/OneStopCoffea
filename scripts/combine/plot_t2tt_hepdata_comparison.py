@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compare split-signal T2tt limits with CMS-SUS-19-006 HEPData."""
+"""Benchmark Run-3 split-signal T2tt limits against CMS-SUS-19-006 HEPData."""
 
 from __future__ import annotations
 
@@ -23,11 +23,6 @@ import yaml
 
 LIMIT_COLUMNS = ("observed", "exp", "exp_m1", "exp_p1", "exp_m2", "exp_p2")
 DEFAULT_TITLE = r"$pp \rightarrow \tilde{t}\tilde{t}, \tilde{t} \rightarrow t\tilde{\chi}^{0}_{1}$"
-
-# Integrated luminosities in fb^-1. Edit these values to match the two inputs.
-LOCAL_LUMINOSITY_FB = 137.0
-HEPDATA_LUMINOSITY_FB = 137.0
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -65,10 +60,33 @@ def parse_args() -> argparse.Namespace:
         help="Use observed or expected limits for both inputs.",
     )
     parser.add_argument(
+        "--local-observation-type",
+        choices=("asimov", "data"),
+        help=(
+            "Required with --quantity observed. Use 'asimov' when data_obs is "
+            "the summed MC background, or 'data' only for actual Run-3 data."
+        ),
+    )
+    parser.add_argument(
         "--xsec-fb",
         type=float,
         default=0.7526,
         help="Signal cross section in fb used to convert local Combine r limits to pb.",
+    )
+    parser.add_argument(
+        "--local-luminosity-fb",
+        type=float,
+        required=True,
+        help=(
+            "Run-3 integrated luminosity used to scale the local inputs, in fb^-1. "
+            "This is required so a Run-2 value cannot be displayed accidentally."
+        ),
+    )
+    parser.add_argument(
+        "--hepdata-luminosity-fb",
+        type=float,
+        default=137.0,
+        help="Published integrated luminosity displayed in the plot label.",
     )
     parser.add_argument(
         "--strip-width",
@@ -101,7 +119,13 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional CSV path for the matched comparison values.",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.quantity == "observed" and args.local_observation_type is None:
+        parser.error(
+            "--local-observation-type is required with --quantity observed; "
+            "the current MC-only workflow must use 'asimov'"
+        )
+    return args
 
 
 def read_rows(path: Path) -> list[dict[str, float | str]]:
@@ -387,11 +411,11 @@ def match_official_points(
             {
                 "mstop": local["mstop"],
                 "mlsp": local["mlsp"],
-                "my_limit_pb": local["limit_pb"],
-                "hepdata_limit_pb": official["limit_pb"],
+                "run3_limit_pb": local["limit_pb"],
+                "run2_hepdata_limit_pb": official["limit_pb"],
                 "ratio": local["limit_pb"] / official["limit_pb"],
-                "hepdata_mstop": official["mstop"],
-                "hepdata_mlsp": official["mlsp"],
+                "run2_hepdata_mstop": official["mstop"],
+                "run2_hepdata_mlsp": official["mlsp"],
             }
         )
     if exact_matches:
@@ -427,11 +451,11 @@ def match_official_points(
             {
                 "mstop": local["mstop"],
                 "mlsp": local["mlsp"],
-                "my_limit_pb": local["limit_pb"],
-                "hepdata_limit_pb": official["limit_pb"],
+                "run3_limit_pb": local["limit_pb"],
+                "run2_hepdata_limit_pb": official["limit_pb"],
                 "ratio": local["limit_pb"] / official["limit_pb"],
-                "hepdata_mstop": official["mstop"],
-                "hepdata_mlsp": official["mlsp"],
+                "run2_hepdata_mstop": official["mstop"],
+                "run2_hepdata_mlsp": official["mlsp"],
             }
         )
     return nearest_matches, nearest_unmatched, "nearest-bin"
@@ -487,7 +511,15 @@ def draw_limit_panel(
 
 def write_comparison_table(path: Path, matched: list[dict[str, float]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    fieldnames = ["mstop", "mlsp", "my_limit_pb", "hepdata_limit_pb", "ratio", "hepdata_mstop", "hepdata_mlsp"]
+    fieldnames = [
+        "mstop",
+        "mlsp",
+        "run3_limit_pb",
+        "run2_hepdata_limit_pb",
+        "ratio",
+        "run2_hepdata_mstop",
+        "run2_hepdata_mlsp",
+    ]
     with path.open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
@@ -524,11 +556,15 @@ def main() -> int:
         raise ValueError("No local/HEPData mass points matched; interpolation is intentionally not used.")
 
     matched_local_points = [
-        {"mstop": row["mstop"], "mlsp": row["mlsp"], "limit_pb": row["my_limit_pb"]}
+        {"mstop": row["mstop"], "mlsp": row["mlsp"], "limit_pb": row["run3_limit_pb"]}
         for row in matched
     ]
     matched_hepdata_points = [
-        {"mstop": row["mstop"], "mlsp": row["mlsp"], "limit_pb": row["hepdata_limit_pb"]}
+        {
+            "mstop": row["mstop"],
+            "mlsp": row["mlsp"],
+            "limit_pb": row["run2_hepdata_limit_pb"],
+        }
         for row in matched
     ]
 
@@ -563,9 +599,13 @@ def main() -> int:
         norm,
         args.cmap,
         args.strip_width,
-        f"My {args.quantity} limits ({LOCAL_LUMINOSITY_FB:g} "
-        + r"fb$^{-1}$)"
+        (
+            "Run 3 MC Asimov limit"
+            if args.quantity == "observed" and args.local_observation_type == "asimov"
+            else f"Run 3 {args.quantity} limits"
+        )
         + "\n"
+        + rf"{args.local_luminosity_fb:g} fb$^{{-1}}$, "
         + rf"$m_{{\tilde{{t}}}}={stop_mass:g}$ GeV",
         True,
     )
@@ -578,9 +618,9 @@ def main() -> int:
         norm,
         args.cmap,
         args.strip_width,
-        f"CMS-SUS-19-006 {args.quantity} ({HEPDATA_LUMINOSITY_FB:g} "
-        + r"fb$^{-1}$)"
-        + "\nFigure 14a HEPData",
+        f"CMS-SUS-19-006 {args.quantity} limits"
+        + "\n"
+        + rf"Run 2, {args.hepdata_luminosity_fb:g} fb$^{{-1}}$ (Figure 14a)",
         False,
     )
     fig.colorbar(mesh, cax=cax).set_label("95% CL upper limit on cross section [pb]")
@@ -591,7 +631,7 @@ def main() -> int:
     ratio_y = np.array([row["mlsp"] for row in matched], dtype=float)
     ax_ratio.axvline(1.0, color="0.35", linewidth=1.2, linestyle="--", zorder=1)
     ax_ratio.plot(ratio_x, ratio_y, "o", color="black", markersize=5.0, zorder=2)
-    ax_ratio.set_xlabel("My limit / HEPData limit")
+    ax_ratio.set_xlabel("Run 3 MC limit / Run 2 HEPData limit")
     ax_ratio.set_title("Matched mass-point ratio")
     ratio_finite = ratio_x[np.isfinite(ratio_x)]
     rmin = min(0.8, float(np.nanmin(ratio_finite)) * 0.92)
@@ -620,7 +660,7 @@ def main() -> int:
             print(
                 "  "
                 f"local ({row['mstop']:g}, {row['mlsp']:g}) -> "
-                f"HEPData ({row['hepdata_mstop']:g}, {row['hepdata_mlsp']:g})"
+                f"HEPData ({row['run2_hepdata_mstop']:g}, {row['run2_hepdata_mlsp']:g})"
             )
     if unmatched_local:
         print("Local points without HEPData match:", ", ".join(f"({m},{l})" for m, l in unmatched_local))

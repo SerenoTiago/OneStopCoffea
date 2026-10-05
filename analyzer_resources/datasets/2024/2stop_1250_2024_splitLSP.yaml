@@ -1,7 +1,7 @@
 - name: 2stop_1250_2024_splitLSP
   title: "2 stop 1250 GeV split LSP"
   sample_type: MC
-  era: run2
+  era: "2024"
   other_data:
     nanoversion: "V15"
     stop_mass: 1250

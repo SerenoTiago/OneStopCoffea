@@ -1,24 +1,25 @@
 #!/usr/bin/env bash
-# End-to-end T2tt jet-bin-fix comparison pipeline:
+# End-to-end 2024 Run-3 T2tt comparison pipeline (109.95 fb^-1):
 #   .result files -> datacards -> combine -> comparison plot + 174-bin plot
 #
-# Run this from the HOST shell (NOT already inside the OSCA/coffea container),
-# from the repository root. It enters/exits the container itself as needed:
+# Run this from the repository root in the normal analysis environment:
 #   scripts/combine/run_full_pipeline.sh
 #
-# Defaults point at the full-statistics condor rerun output directories.
-# Pass --test to use the quick local 10k-event result files instead.
+# The CMS-SUS-19-006 Run-2 result is used only as an external benchmark. The
+# local inputs, normalization, labels, and output names remain explicitly Run 3.
 #
 # Optional overrides (env vars):
-#   SIGNAL_DIR      default: analysis_products/old_results/26-09-10_hadsusy_signal_full_allmass
+#   SIGNAL_DIR      default: analysis_products/results/2026-10-01_run3_2024_109p95fb_t2tt_1250_offline_trigger_approx
 #                            (--test: analysis_products/old_results/26-09-10_hadsusy_signal_10k)
-#   BACKGROUND_DIR  default: analysis_products/old_results/26-09-10_hadsusy_backgrounds_jetbins_fixed
+#   BACKGROUND_DIR  default: analysis_products/results/2026-09-28_run3_2024_109p95fb_backgrounds_full_with_HLT
 #                            (--test: analysis_products/old_results/26-09-10_hadsusy_backgrounds_10k)
-#   COMBINE_DIR     default: analysis_products/combine/split_signals_jetbins_fixed
-#   SEARCHBIN_PLOT_DIR   default: analysis_products/plots/diagnostics/search_bin_diagnostics
-#   SEARCHBIN_COMBINED_OUT default: analysis_products/plots/diagnostics/search_bin_diagnostics_combined.png
+#   COMBINE_DIR     default: analysis_products/combine/2026-10-01_run3_2024_109p95fb_t2tt_1250_offline_trigger_approx
+#   LOCAL_LUMINOSITY_FB default: 109.95
+#   COLLISION_ENERGY_TEV default: 13.6
+#   SEARCHBIN_PLOT_DIR   default: $COMBINE_DIR/search_bin_diagnostics
+#   SEARCHBIN_COMBINED_OUT default: $COMBINE_DIR/search_bin_diagnostics_combined.png
 #                          (primary plot: all mLSP signals summed into one "signal" line)
-#   UV_PROJECT_ENVIRONMENT  default: $PWD/.venv-local10k
+#   ANALYSIS_PYTHON default: $PWD/.venv-local10k/bin/python
 
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
@@ -34,19 +35,22 @@ if [[ "$TEST_MODE" == "true" ]]; then
     DEFAULT_SIGNAL_DIR="analysis_products/old_results/26-09-10_hadsusy_signal_10k"
     DEFAULT_BACKGROUND_DIR="analysis_products/old_results/26-09-10_hadsusy_backgrounds_10k"
 else
-    DEFAULT_SIGNAL_DIR="analysis_products/old_results/26-09-10_hadsusy_signal_full_allmass"
-    DEFAULT_BACKGROUND_DIR="analysis_products/old_results/26-09-10_hadsusy_backgrounds_jetbins_fixed"
+    DEFAULT_SIGNAL_DIR="analysis_products/results/2026-10-01_run3_2024_109p95fb_t2tt_1250_offline_trigger_approx"
+    DEFAULT_BACKGROUND_DIR="analysis_products/results/2026-09-28_run3_2024_109p95fb_backgrounds_full_with_HLT"
 fi
 
 SIGNAL_DIR="${SIGNAL_DIR:-$DEFAULT_SIGNAL_DIR}"
 BACKGROUND_DIR="${BACKGROUND_DIR:-$DEFAULT_BACKGROUND_DIR}"
-MERGED_DIR="${MERGED_DIR:-.application_data/pipeline_results_merged}"
-COMBINE_DIR="${COMBINE_DIR:-analysis_products/combine/split_signals_jetbins_fixed}"
+MERGED_DIR="${MERGED_DIR:-.application_data/combine_inputs_run3_2024_109p95fb_t2tt_1250_offline_trigger_approx}"
+CONFIG_DIR="${CONFIG_DIR:-.application_data/generated_postprocess/run3_2024_109p95fb_t2tt_1250_offline_trigger_approx}"
+COMBINE_DIR="${COMBINE_DIR:-analysis_products/combine/2026-10-01_run3_2024_109p95fb_t2tt_1250_offline_trigger_approx}"
 LIMITS_CSV="${LIMITS_CSV:-$COMBINE_DIR/limits.csv}"
 COMPARISON_OUT="${COMPARISON_OUT:-$COMBINE_DIR/t2tt_hepdata_comparison}"
-SEARCHBIN_PLOT_DIR="${SEARCHBIN_PLOT_DIR:-analysis_products/plots/diagnostics/search_bin_diagnostics}"
-SEARCHBIN_COMBINED_OUT="${SEARCHBIN_COMBINED_OUT:-analysis_products/plots/diagnostics/search_bin_diagnostics_combined.png}"
-UV_PROJECT_ENVIRONMENT="${UV_PROJECT_ENVIRONMENT:-$PWD/.venv-local10k}"
+SEARCHBIN_PLOT_DIR="${SEARCHBIN_PLOT_DIR:-$COMBINE_DIR/search_bin_diagnostics}"
+SEARCHBIN_COMBINED_OUT="${SEARCHBIN_COMBINED_OUT:-$COMBINE_DIR/search_bin_diagnostics_combined.png}"
+LOCAL_LUMINOSITY_FB="${LOCAL_LUMINOSITY_FB:-109.95}"
+COLLISION_ENERGY_TEV="${COLLISION_ENERGY_TEV:-13.6}"
+ANALYSIS_PYTHON="${ANALYSIS_PYTHON:-$PWD/.venv-local10k/bin/python}"
 ALLOW_MISSING_FLAG=""
 if [[ "$TEST_MODE" == "true" ]]; then
     ALLOW_MISSING_FLAG="--allow-missing-backgrounds"
@@ -55,48 +59,53 @@ fi
 echo "Mode: $([[ "$TEST_MODE" == "true" ]] && echo '--test (10k local)' || echo 'full condor rerun')"
 echo "SIGNAL_DIR=$SIGNAL_DIR"
 echo "BACKGROUND_DIR=$BACKGROUND_DIR"
+echo "Run-3 luminosity: $LOCAL_LUMINOSITY_FB fb^-1 at $COLLISION_ENERGY_TEV TeV"
 
 echo "=== 0/4: merging signal + background result files into $MERGED_DIR ==="
-rm -rf "$MERGED_DIR"
+if [[ "$MERGED_DIR" != .application_data/* ]]; then
+    echo "ERROR: MERGED_DIR must remain under .application_data/: $MERGED_DIR" >&2
+    exit 2
+fi
 mkdir -p "$MERGED_DIR"
+if find "$MERGED_DIR" -mindepth 1 -maxdepth 1 ! -type l -print -quit | grep -q .; then
+    echo "ERROR: refusing to clear non-symlink content from $MERGED_DIR" >&2
+    exit 2
+fi
+find "$MERGED_DIR" -mindepth 1 -maxdepth 1 -type l -delete
 ln -sf "$(realpath "$SIGNAL_DIR")"/*.result "$MERGED_DIR"/
 ln -sf "$(realpath "$BACKGROUND_DIR")"/*.result "$MERGED_DIR"/
 
-echo "=== 1/4: generating + running per-signal datacards (inside container) ==="
-UV_PROJECT_ENVIRONMENT="$UV_PROJECT_ENVIRONMENT" MERGED_DIR="$MERGED_DIR" COMBINE_DIR="$COMBINE_DIR" ALLOW_MISSING_FLAG="$ALLOW_MISSING_FLAG" ./setup.sh <<'EOF'
-set -euo pipefail
-uv run --no-sync python3 scripts/combine/make_split_signal_datacards.py \
-    "$MERGED_DIR" --output-dir "$COMBINE_DIR" --run --overwrite $ALLOW_MISSING_FLAG
-EOF
+echo "=== 1/4: generating + running per-signal datacards ==="
+"$ANALYSIS_PYTHON" scripts/combine/make_split_signal_datacards.py \
+    "$MERGED_DIR" --output-dir "$COMBINE_DIR" --config-dir "$CONFIG_DIR" \
+    --run --overwrite $ALLOW_MISSING_FLAG
 
 echo "=== 2/4: running combine (host apptainer) ==="
 python3 scripts/combine/run_split_signal_combine.py "$COMBINE_DIR" --keep-going
 
-echo "=== 3/4: collecting limits + plotting comparison (inside container) ==="
-UV_PROJECT_ENVIRONMENT="$UV_PROJECT_ENVIRONMENT" COMBINE_DIR="$COMBINE_DIR" LIMITS_CSV="$LIMITS_CSV" COMPARISON_OUT="$COMPARISON_OUT" ./setup.sh <<'EOF'
-set -euo pipefail
-uv run --no-sync python3 scripts/combine/collect_split_signal_limits.py \
+echo "=== 3/4: collecting limits + plotting Run-3/Run-2-reference comparison ==="
+"$ANALYSIS_PYTHON" scripts/combine/collect_split_signal_limits.py \
     "$COMBINE_DIR" --output "$LIMITS_CSV"
-uv run --no-sync python3 scripts/combine/plot_t2tt_hepdata_comparison.py \
-    --limits-csv "$LIMITS_CSV" --output "$COMPARISON_OUT"
-EOF
+"$ANALYSIS_PYTHON" scripts/combine/plot_t2tt_hepdata_comparison.py \
+    --limits-csv "$LIMITS_CSV" --output "$COMPARISON_OUT" \
+    --local-luminosity-fb "$LOCAL_LUMINOSITY_FB" \
+    --local-observation-type asimov
 
-echo "=== 4/4: 174-bin search-region diagnostic plots (inside container) ==="
-UV_PROJECT_ENVIRONMENT="$UV_PROJECT_ENVIRONMENT" COMBINE_DIR="$COMBINE_DIR" SEARCHBIN_PLOT_DIR="$SEARCHBIN_PLOT_DIR" SEARCHBIN_COMBINED_OUT="$SEARCHBIN_COMBINED_OUT" ./setup.sh <<'EOF'
-set -euo pipefail
+echo "=== 4/4: 174-bin Run-3 search-region diagnostic plots ==="
 mkdir -p "$SEARCHBIN_PLOT_DIR" "$(dirname "$SEARCHBIN_COMBINED_OUT")"
 
 plot_diag() {
     local shapes_file="$1" output="$2" signal_hist="$3"
     local background_args
-    background_args=$(uv run --no-sync python3 -c "
+    background_args=$("$ANALYSIS_PYTHON" -c "
 import uproot
 keys = {k.split(';')[0] for k in uproot.open('$shapes_file').keys()}
 defaults = ['qcd_inclusive_2024','tt_hadronic_2024','tt_semileptonic_2024','wjets_2024','zjets_2024']
 print(' '.join(f'--background {b}' for b in defaults if b in keys))
 ")
-    uv run --no-sync python3 scripts/combine/plot_search_bin_diagnostics.py \
-        "$shapes_file" --signal "$signal_hist" $background_args -o "$output"
+    "$ANALYSIS_PYTHON" scripts/combine/plot_search_bin_diagnostics.py \
+        "$shapes_file" --signal "$signal_hist" $background_args -o "$output" \
+        --lumi "$LOCAL_LUMINOSITY_FB" --energy "$COLLISION_ENERGY_TEV"
 }
 
 # One plot per mass point.
@@ -106,7 +115,7 @@ for point_dir in "$COMBINE_DIR"/T2tt_mStop-*_mLSP-*; do
     shapes_file="$point_dir/shapes_bins_hadsusy.root"
     [[ -f "$shapes_file" ]] || continue
     shapes_files+=("$shapes_file")
-    signal_hist=$(uv run --no-sync python3 -c "
+    signal_hist=$("$ANALYSIS_PYTHON" -c "
 import uproot
 keys = {k.split(';')[0] for k in uproot.open('$shapes_file').keys()}
 print(next(k for k in keys if k.startswith('2stop_')))
@@ -116,16 +125,14 @@ done
 
 # Primary combined plot: all mLSP signals summed into one "signal" line.
 COMBINED_SHAPES="$COMBINE_DIR/shapes_all_signals_combined.root"
-uv run --no-sync python3 scripts/combine/build_combined_signal_shapes.py \
+"$ANALYSIS_PYTHON" scripts/combine/build_combined_signal_shapes.py \
     "${shapes_files[@]}" --signal-histogram "$signal_hist" -o "$COMBINED_SHAPES"
 plot_diag "$COMBINED_SHAPES" "$SEARCHBIN_COMBINED_OUT" signal
-EOF
-
 echo
 echo "=== Done. Outputs: ==="
 echo "  $COMBINE_DIR/T2tt_mStop-*_mLSP-*/  (datacards, combine logs, shapes ROOT files)"
 echo "  $LIMITS_CSV"
-echo "  ${COMPARISON_OUT}.png / .pdf  (updated t2tt comparison plot, all mLSP points, like t2tt_equal_luminosity_comparison.png)"
+echo "  ${COMPARISON_OUT}.png / .pdf  (Run-3 limits benchmarked against CMS-SUS-19-006)"
 echo "  ${COMPARISON_OUT}_values.csv"
 echo "  $SEARCHBIN_COMBINED_OUT  (primary 174-bin plot: all mLSP signals summed into one 'signal' line)"
 echo "  $SEARCHBIN_PLOT_DIR/T2tt_mStop-*_mLSP-*.png  (one 174-bin plot per mass point)"

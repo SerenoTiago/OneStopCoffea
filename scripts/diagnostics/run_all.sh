@@ -7,10 +7,10 @@
 #   scripts/diagnostics/run_all.sh --test      # uses the quick local 10k-event result files
 #
 # Optional overrides (env vars, take precedence over --test defaults):
-#   BEFORE_SIGNAL   default: analysis_products/old_results/26-08-30_hadsusy_1250_run2
+#   BEFORE_SIGNAL   default: analysis_products/old_results/26-08-30_hadsusy_1250_run3_projection_137fb
 #   AFTER_SIGNAL    default: analysis_products/old_results/26-09-10_hadsusy_jetbins_fixed/signal
 #                   (--test: analysis_products/old_results/26-09-10_hadsusy_signal_10k)
-#   BEFORE_BKG      default: analysis_products/old_results/26-08-30_hadsusy_1250_run2
+#   BEFORE_BKG      default: analysis_products/old_results/26-08-30_hadsusy_1250_run3_projection_137fb
 #   AFTER_BKG       default: analysis_products/old_results/26-09-10_hadsusy_backgrounds_jetbins_fixed
 #                   (--test: analysis_products/old_results/26-09-10_hadsusy_backgrounds_10k)
 #   OUT_DIR         default: analysis_products/plots/diagnostics
@@ -36,9 +36,9 @@ else
     DEFAULT_AFTER_BKG="analysis_products/old_results/26-09-10_hadsusy_backgrounds_jetbins_fixed"
 fi
 
-BEFORE_SIGNAL="${BEFORE_SIGNAL:-analysis_products/old_results/26-08-30_hadsusy_1250_run2}"
+BEFORE_SIGNAL="${BEFORE_SIGNAL:-analysis_products/old_results/26-08-30_hadsusy_1250_run3_projection_137fb}"
 AFTER_SIGNAL="${AFTER_SIGNAL:-$DEFAULT_AFTER_SIGNAL}"
-BEFORE_BKG="${BEFORE_BKG:-analysis_products/old_results/26-08-30_hadsusy_1250_run2}"
+BEFORE_BKG="${BEFORE_BKG:-analysis_products/old_results/26-08-30_hadsusy_1250_run3_projection_137fb}"
 AFTER_BKG="${AFTER_BKG:-$DEFAULT_AFTER_BKG}"
 OUT_DIR="${OUT_DIR:-analysis_products/plots/diagnostics}"
 
