@@ -1,0 +1,212 @@
+objects: &objects
+  - module_name: PosNegGenWeight
+
+  - module_name: JetID
+    input_col: Jet
+    output_col: Jet.jetId
+
+  - module_name: ElectronMaker
+    input_col: Electron
+    output_col: vetoElectron
+    working_point: veto
+    min_pt: 10
+    max_abs_eta: 2.5
+    max_mini_iso: 0.1
+
+  - module_name: MuonMaker
+    input_col: Muon
+    output_col: vetoMuon
+    id_working_point: mediumId
+    min_pt: 10
+    max_abs_eta: 2.4
+    max_mini_iso: 0.2
+
+  - module_name: PhotonMaker
+    input_col: Photon
+    output_col: goodPhoton
+    working_point: tight
+    min_pt: 100
+    max_abs_eta: 2.5
+    require_electron_veto: true
+
+  - module_name: JetFilter
+    input_col: Jet
+    output_col: goodJet
+    include_pu_id: false
+    include_jet_id: true
+    min_pt: 30
+    max_abs_eta: 2.4
+
+  - module_name: JetFilter
+    input_col: Jet
+    output_col: htmissJet
+    include_pu_id: false
+    include_jet_id: true
+    min_pt: 30
+    max_abs_eta: 5.0
+
+  - module_name: BJetSelector
+    input_col: goodJet
+    output_col: mediumBJet
+    working_point: M
+
+  - module_name: HT
+    input_col: goodJet
+    output_col: HT
+
+  - module_name: Count
+    input_col: goodJet
+    output_col: NJet
+
+  - module_name: Count
+    input_col: mediumBJet
+    output_col: NBJet
+
+  - module_name: HTMiss
+    input_col: htmissJet
+    output_col: HTMiss
+    output_phi_col: HTMissPhi
+
+  - module_name: IsoTrackMaker
+    input_col: IsoTrack
+    output_col: goodIsoTrack
+    htmiss_col: PFMET.pt
+    htmiss_phi_col: PFMET.phi
+    max_abs_eta: 2.4
+    max_mt: 100
+    min_lepton_track_pt: 5
+    min_hadron_track_pt: 10
+    max_lepton_track_iso: 0.2
+    max_hadron_track_iso: 0.1
+    min_from_pv: 2
+    max_abs_dxy: 0.2
+    max_abs_dz: 0.1
+    require_high_purity: true
+    require_pf_candidate: false
+
+  - module_name: HTMissDeltaPhi
+    jet_col: goodJet
+    htmiss_phi_col: HTMissPhi
+    output_prefix: DeltaPhiHTMissJet
+    max_jets: 4
+
+  - module_name: SearchBin
+    njet_col: NJet
+    nbjet_col: NBJet
+    ht_col: HT
+    htmiss_col: HTMiss
+    output_col: SearchBin
+
+histograms: &histograms
+  - module_name: SimpleHistogram
+    hist_name: JetHT
+    input_cols: [HT]
+    axes:
+      - {name: HT, start: 0, stop: 3000, bins: 60, unit: GeV}
+
+  - module_name: SimpleHistogram
+    hist_name: JetN
+    input_cols: [NJet]
+    axes:
+      - {name: "$N_{jets}$", start: -0.5, stop: 13.5, bins: 14}
+
+  - module_name: SimpleHistogram
+    hist_name: BJetN
+    input_cols: [NBJet]
+    axes:
+      - {name: "$N_b$", start: -0.5, stop: 6.5, bins: 7}
+
+  - module_name: SimpleHistogram
+    hist_name: HTMiss
+    input_cols: [HTMiss]
+    axes:
+      - {name: "$H_T^{miss}$", start: 0, stop: 3000, bins: 60, unit: GeV}
+
+  - module_name: SimpleHistogram
+    hist_name: SearchBinYield
+    input_cols: [SearchBin]
+    axes:
+      - {name: "Search bin", start: 0.5, stop: 174.5, bins: 174}
+
+selection: &selection
+  - module_name: NObjFilter
+    input_col: vetoElectron
+    selection_name: zero_electron
+    min_count: 0
+    max_count: 0
+
+  - module_name: NObjFilter
+    input_col: vetoMuon
+    selection_name: zero_muon
+    min_count: 0
+    max_count: 0
+
+  - module_name: NObjFilter
+    input_col: goodPhoton
+    selection_name: zero_photon
+    min_count: 0
+    max_count: 0
+
+  - module_name: NObjFilter
+    input_col: goodJet
+    selection_name: njets
+    min_count: 2
+
+  - module_name: ScalarFilter
+    input_col: HT
+    selection_name: ht_gt_300
+    min_value: 300
+
+  - module_name: ScalarFilter
+    input_col: HTMiss
+    selection_name: htmiss_gt_300
+    min_value: 300
+
+  - module_name: HTMissLessThanHT
+    ht_col: HT
+    htmiss_col: HTMiss
+    selection_name: htmiss_lt_ht
+
+  - module_name: HTMissDeltaPhiSelection
+    njet_col: NJet
+    dphi_prefix: DeltaPhiHTMissJet
+    selection_name: htmiss_dphi
+
+  - module_name: NObjFilter
+    input_col: goodIsoTrack
+    selection_name: zero_iso_track
+    min_count: 0
+    max_count: 0
+
+  - module_name: ScalarFilter
+    input_col: SearchBin
+    selection_name: search_bin_valid
+    min_value: 0
+
+analyzer:
+  default_run_builder:
+    strategy_name: NoSystematics
+
+  susy_full_validation:
+    - *objects
+    - module_name: SimpleHLT
+      triggers: [METMHT]
+      selection_name: met_mht_trigger
+    - *selection
+    - module_name: SelectOnColumns
+      sel_name: selection
+    - *histograms
+
+location_priorities: [".*(T0|T1|T2).*", eos]
+
+event_collections:
+  - dataset: qcd*2024*
+    pipelines: [susy_full_validation]
+  - dataset: tt_hadronic*2024*
+    pipelines: [susy_full_validation]
+  - dataset: tt_semilep*2024
+    pipelines: [susy_full_validation]
+  - dataset: wjets*2024*
+    pipelines: [susy_full_validation]
+  - dataset: zjets*2024*
+    pipelines: [susy_full_validation]

@@ -47,6 +47,7 @@ class PostprocessorConfig:
     default_plot_config: PlotConfiguration = field(factory=PlotConfiguration)
     drop_sample_pattern: BasePattern | None = None
     do_merge_and_scale: bool = True
+    luminosity_override: float | None = None
 
     def keepPatterns(self):
         keep_patterns = []
@@ -167,7 +168,9 @@ def runResults(
 ):
     if postprocessor.do_merge_and_scale:
         results = mergeAndScale(
-            results, drop_sample_pattern=postprocessor.drop_sample_pattern
+            results,
+            drop_sample_pattern=postprocessor.drop_sample_pattern,
+            luminosity_override=postprocessor.luminosity_override,
         )
 
     all_funcs = []

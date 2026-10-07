@@ -266,7 +266,9 @@ def postprocess(
         results = loadResults(inputs)
         if postprocessor.do_merge_and_scale:
             results = mergeAndScale(
-                results, drop_sample_pattern=postprocessor.drop_sample_pattern
+                results,
+                drop_sample_pattern=postprocessor.drop_sample_pattern,
+                luminosity_override=postprocessor.luminosity_override,
             )
 
         for proc_idx, processor in enumerate(postprocessor.processors):

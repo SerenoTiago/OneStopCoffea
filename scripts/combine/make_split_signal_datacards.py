@@ -103,6 +103,15 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Continue even if one or more requested background datasets are absent.",
     )
+    parser.add_argument(
+        "--luminosity-override",
+        type=float,
+        help=(
+            "Normalize all MC inputs to this luminosity in fb^-1 instead of "
+            "the luminosity stored in their era metadata. Use this only for "
+            "an explicitly labelled luminosity projection."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -132,6 +141,7 @@ def yaml_for_signal(
     output_dir: Path,
     channel: str,
     backgrounds: list[str],
+    luminosity_override: float | None = None,
 ) -> str:
     mstop = int(signal["mstop"])
     mlsp = int(signal["mlsp"])
@@ -141,7 +151,14 @@ def yaml_for_signal(
         f"                - {{dataset_name: \"{name}\"}}" for name in backgrounds
     )
 
+    luminosity_line = ""
+    if luminosity_override is not None:
+        if luminosity_override <= 0:
+            raise ValueError("luminosity_override must be positive")
+        luminosity_line = f"  luminosity_override: {luminosity_override:g}\n"
+
     return f"""Postprocessing:
+{luminosity_line}  # This override changes MC yields and plot metadata; it is not just a label.
   processors:
     - name: CombineDatacard
       channel: {channel}
@@ -242,6 +259,7 @@ def main() -> int:
             output_dir=output_dir,
             channel=args.channel,
             backgrounds=backgrounds,
+            luminosity_override=args.luminosity_override,
         )
         config_path.write_text(config_text)
         current_inputs = input_paths_for_signal(

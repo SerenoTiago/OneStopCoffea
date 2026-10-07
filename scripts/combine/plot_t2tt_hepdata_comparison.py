@@ -56,7 +56,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--quantity",
         choices=("observed", "expected"),
-        default="observed",
+        default="expected",
         help="Use observed or expected limits for both inputs.",
     )
     parser.add_argument(
@@ -583,7 +583,7 @@ def main() -> int:
         vmin, vmax = float(np.nanmin(finite_values)), float(np.nanmax(finite_values))
     norm: Normalize | LogNorm = Normalize(vmin=vmin, vmax=vmax) if args.linear else LogNorm(vmin=vmin, vmax=vmax)
 
-    fig = plt.figure(figsize=(11.5, 6.2), constrained_layout=True)
+    fig = plt.figure(figsize=(11.5, 6.8), constrained_layout=True)
     grid = fig.add_gridspec(1, 4, width_ratios=[1.0, 1.0, 0.08, 1.35], wspace=0.08)
     ax_my = fig.add_subplot(grid[0, 0])
     ax_hep = fig.add_subplot(grid[0, 1], sharey=ax_my)
@@ -600,9 +600,9 @@ def main() -> int:
         args.cmap,
         args.strip_width,
         (
-            "Run 3 MC Asimov limit"
+            "Run 3\nMC Asimov observed limit"
             if args.quantity == "observed" and args.local_observation_type == "asimov"
-            else f"Run 3 {args.quantity} limits"
+            else "Run 3\nMedian expected limits"
         )
         + "\n"
         + rf"{args.local_luminosity_fb:g} fb$^{{-1}}$, "
@@ -618,7 +618,11 @@ def main() -> int:
         norm,
         args.cmap,
         args.strip_width,
-        f"CMS-SUS-19-006 {args.quantity} limits"
+        (
+            "CMS-SUS-19-006\nMedian expected limits"
+            if args.quantity == "expected"
+            else "CMS-SUS-19-006\nObserved limits"
+        )
         + "\n"
         + rf"Run 2, {args.hepdata_luminosity_fb:g} fb$^{{-1}}$ (Figure 14a)",
         False,
@@ -631,7 +635,12 @@ def main() -> int:
     ratio_y = np.array([row["mlsp"] for row in matched], dtype=float)
     ax_ratio.axvline(1.0, color="0.35", linewidth=1.2, linestyle="--", zorder=1)
     ax_ratio.plot(ratio_x, ratio_y, "o", color="black", markersize=5.0, zorder=2)
-    ax_ratio.set_xlabel("Run 3 MC limit / Run 2 HEPData limit")
+    ratio_label = (
+        "Run 3 median expected / Run 2 median expected"
+        if args.quantity == "expected"
+        else "Run 3 MC Asimov observed / Run 2 observed"
+    )
+    ax_ratio.set_xlabel(ratio_label)
     ax_ratio.set_title("Matched mass-point ratio")
     ratio_finite = ratio_x[np.isfinite(ratio_x)]
     rmin = min(0.8, float(np.nanmin(ratio_finite)) * 0.92)

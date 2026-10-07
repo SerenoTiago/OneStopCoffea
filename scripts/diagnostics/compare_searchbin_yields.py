@@ -10,7 +10,7 @@ Usage:
         --output-csv docs/investigations/t2tt_comparison_2026-09-10/background_comparison_174_bins_before_after.csv \\
         --output-plot analysis_products/plots/diagnostics/searchbin_yield_before_after.png
 
-Background dataset names are hardcoded to match hadronic_susy_backgrounds.yaml.
+Background dataset names match configurations/production/hadronic_susy/backgrounds.yaml.
 """
 
 from __future__ import annotations

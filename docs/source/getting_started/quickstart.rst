@@ -10,7 +10,7 @@ Step 1: The Example Configuration
 
 
 We are doing to work with a very simple 
-Let us start by looking at the example configuration at ``configurations/example.yaml``:
+Let us start by looking at the example configuration at ``configurations/examples/example.yaml``:
 
 .. code-block:: yaml
 
@@ -87,7 +87,7 @@ Run the example with a small event count for a quick test:
 
     ./osca run -e imm-10000 \
       --max-sample-events 10000 \
-      configurations/example.yaml \
+      configurations/examples/example.yaml \
       test_output/
 
 This processes at most 10000 events from each matching dataset sample using the local single-process executor (``imm-10000``).

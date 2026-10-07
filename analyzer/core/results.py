@@ -676,7 +676,19 @@ def loadResults(paths, peek_only=False, keep_patterns=None, return_file_sizes=Fa
         return ret
 
 
-def mergeAndScale(results, drop_sample_pattern=None):
+def mergeAndScale(
+    results, drop_sample_pattern=None, luminosity_override: float | None = None
+):
+    """Merge samples and normalize MC to an integrated luminosity.
+
+    By default the luminosity stored in each sample's era metadata is used.
+    ``luminosity_override`` is intended for explicit luminosity projections; it
+    changes both the MC normalization and the merged metadata used by plot
+    annotations without modifying the serialized input result files.
+    """
+    if luminosity_override is not None and luminosity_override <= 0:
+        raise ValueError("luminosity_override must be positive")
+
     for dataset, meta in globWithMeta(results, ["*"]):
         total = None
         for s in dataset:
@@ -695,10 +707,18 @@ def mergeAndScale(results, drop_sample_pattern=None):
             # print(f"{processed_events = }")
             # print(f"{s_meta['n_events'] = }")
             if s_meta["sample_type"] == "MC":
-                lumi = s_meta["era"]["lumi"]
+                source_lumi = s_meta["era"]["lumi"]
+                lumi = (
+                    luminosity_override
+                    if luminosity_override is not None
+                    else source_lumi
+                )
                 xs = s_meta["x_sec"]
                 scale = lumi * xs / processed_events
                 sample_data.iscale(scale)
+                if luminosity_override is not None:
+                    s_meta["era"].setdefault("source_lumi", source_lumi)
+                    s_meta["era"]["lumi"] = luminosity_override
             elif s_meta["sample_type"] == "Data":
                 expected_nevents = s_meta["n_events"]
                 sample_data.iscale(expected_nevents / processed_events)

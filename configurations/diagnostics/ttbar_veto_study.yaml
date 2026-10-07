@@ -1,0 +1,174 @@
+common_objects: &common_objects
+  - module_name: PosNegGenWeight
+
+  # Production objects: copied from hadronic_susy_backgrounds.yaml.
+  - module_name: JetID
+    input_col: Jet
+    output_col: Jet.jetId
+  - module_name: ElectronMaker
+    input_col: Electron
+    output_col: tightElectron
+    working_point: tight
+    min_pt: 10
+    max_abs_eta: 2.5
+  - module_name: MuonMaker
+    input_col: Muon
+    output_col: tightMuon
+    id_working_point: tightId
+    min_pt: 10
+    max_abs_eta: 2.4
+    iso_working_point: tight
+    max_mini_iso: 0.2
+  - module_name: PhotonMaker
+    input_col: Photon
+    output_col: goodPhoton
+    working_point: tight
+    min_pt: 100
+    max_abs_eta: 2.5
+    require_electron_veto: true
+  - module_name: JetFilter
+    input_col: Jet
+    output_col: goodJet
+    include_pu_id: false
+    include_jet_id: true
+    min_pt: 30
+    max_abs_eta: 2.4
+  - module_name: JetFilter
+    input_col: Jet
+    output_col: htmissJet
+    include_pu_id: false
+    include_jet_id: true
+    min_pt: 30
+    max_abs_eta: 5.0
+  - module_name: BJetSelector
+    input_col: goodJet
+    output_col: mediumBJet
+    working_point: M
+  - module_name: HT
+    input_col: goodJet
+    output_col: HT
+  - module_name: Count
+    input_col: goodJet
+    output_col: NJet
+  - module_name: Count
+    input_col: mediumBJet
+    output_col: NBJet
+  - module_name: HTMiss
+    input_col: htmissJet
+    output_col: HTMiss
+    output_phi_col: HTMissPhi
+  - module_name: IsoTrackMaker
+    input_col: IsoTrack
+    output_col: goodIsoTrack
+    htmiss_col: HTMiss
+    htmiss_phi_col: HTMissPhi
+    max_abs_eta: 2.4
+    max_mt: 100
+    min_lepton_track_pt: 5
+    min_hadron_track_pt: 10
+    max_lepton_track_iso: 0.2
+    max_hadron_track_iso: 0.1
+    min_from_pv: 2
+    max_abs_dxy: 0.2
+    max_abs_dz: 0.1
+    require_high_purity: true
+    require_pf_candidate: false
+  - module_name: HTMissDeltaPhi
+    jet_col: goodJet
+    htmiss_phi_col: HTMissPhi
+    output_prefix: DeltaPhiHTMissJet
+    max_jets: 4
+  - module_name: SearchBin
+    njet_col: NJet
+    nbjet_col: NBJet
+    ht_col: HT
+    htmiss_col: HTMiss
+    output_col: SearchBin
+
+  # Diagnostic-only alternative veto objects.
+  - module_name: ElectronMaker
+    input_col: Electron
+    output_col: vetoElectron
+    working_point: veto
+    min_pt: 10
+    max_abs_eta: 2.5
+    max_mini_iso: 0.1
+  - module_name: MuonMaker
+    input_col: Muon
+    output_col: mediumMuonNoPFIso
+    id_working_point: mediumId
+    min_pt: 10
+    max_abs_eta: 2.4
+    max_mini_iso: 0.2
+  - module_name: MuonMaker
+    input_col: Muon
+    output_col: tightMuonNoPFIso
+    id_working_point: tightId
+    min_pt: 10
+    max_abs_eta: 2.4
+    max_mini_iso: 0.2
+  - module_name: IsoTrackMaker
+    input_col: IsoTrack
+    output_col: goodIsoTrackPFMET
+    htmiss_col: PFMET.pt
+    htmiss_phi_col: PFMET.phi
+    max_abs_eta: 2.4
+    max_mt: 100
+    min_lepton_track_pt: 5
+    min_hadron_track_pt: 10
+    max_lepton_track_iso: 0.2
+    max_hadron_track_iso: 0.1
+    min_from_pv: 2
+    max_abs_dxy: 0.2
+    max_abs_dz: 0.1
+    require_high_purity: true
+    require_pf_candidate: false
+
+analyzer:
+  default_run_builder:
+    strategy_name: NoSystematics
+
+  ttbar_veto_diagnostic:
+    - *common_objects
+    - module_name: SimpleHLT
+      triggers: [METMHT]
+      selection_name: met_mht_trigger
+    - module_name: NObjFilter
+      input_col: goodPhoton
+      selection_name: zero_photon
+      min_count: 0
+      max_count: 0
+    - module_name: NObjFilter
+      input_col: goodJet
+      selection_name: njets
+      min_count: 2
+    - module_name: ScalarFilter
+      input_col: HT
+      selection_name: ht_gt_300
+      min_value: 300
+    - module_name: ScalarFilter
+      input_col: HTMiss
+      selection_name: htmiss_gt_300
+      min_value: 300
+    - module_name: HTMissLessThanHT
+      ht_col: HT
+      htmiss_col: HTMiss
+      selection_name: htmiss_lt_ht
+    - module_name: HTMissDeltaPhiSelection
+      njet_col: NJet
+      dphi_prefix: DeltaPhiHTMissJet
+      selection_name: htmiss_dphi
+    - module_name: ScalarFilter
+      input_col: SearchBin
+      selection_name: search_bin_valid
+      min_value: 0
+    - module_name: TTbarVetoDiagnostic
+
+# Prefer the Wisconsin replica for this small interactive diagnostic.  Several
+# equivalent remote replicas currently advertise the file but reject reads.
+location_priorities: ["T2_US_Wisconsin", ".*(T0|T1|T2).*", "eos"]
+
+event_collections:
+  - dataset: tt_semileptonic_2024
+    pipelines:
+      - ttbar_veto_diagnostic
