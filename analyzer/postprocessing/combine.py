@@ -64,10 +64,12 @@ class Channel:
 
 
 class DataCard:
-    def __init__(self):
+    def __init__(self, auto_mc_stats=None):
         self.processes = []
         self.systematics = []
         self.channels = []
+        # Event threshold for Combine's autoMCStats; None writes no such line.
+        self.auto_mc_stats = auto_mc_stats
 
         self.observations = {}
         self.process_systematics = {}
@@ -198,6 +200,8 @@ class DataCard:
         lines += self.constructObservations()
         lines += [""] * 2
         lines += self.constructSystematics()
+        if self.auto_mc_stats is not None:
+            lines.append(f"* autoMCStats {self.auto_mc_stats}")
         output = "\n".join(lines) + "\n"
         return output
 
@@ -314,11 +318,12 @@ def writeDatacard(
     output_dir,
     observation=None,
     systematics_pattern=None,
+    auto_mc_stats=None,
 ):
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    card = DataCard()
+    card = DataCard(auto_mc_stats=auto_mc_stats)
 
     channel = Channel(channel_name)
     card.addChannel(channel)
@@ -449,6 +454,7 @@ class CombineDatacard(BasePostprocessor):
     output_name: str
     channel: str
     systematics: str | None = None
+    auto_mc_stats: int | None = None
 
     def getRunFuncs(self, group, prefix=None):
         signal = group["signal"]
@@ -476,6 +482,7 @@ class CombineDatacard(BasePostprocessor):
                 output_dir=formatted_output_dir,
                 channel_name=channel_name,
                 systematics_pattern=self.systematics,
+                auto_mc_stats=self.auto_mc_stats,
             )
 
 
@@ -487,6 +494,7 @@ def createDatacardsAndScript(
     observation=None,
     systematics_pattern=None,
     channel_name="bin1",
+    auto_mc_stats=None,
 ):
     datacard_path = writeDatacard(
         channel_name=channel_name,
@@ -496,6 +504,7 @@ def createDatacardsAndScript(
         common_metadata=common_meta,
         output_dir=output_dir,
         systematics_pattern=systematics_pattern,
+        auto_mc_stats=auto_mc_stats,
     )
 
     writeCountingExperimentScript(output_dir, [datacard_path])

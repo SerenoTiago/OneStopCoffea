@@ -31,8 +31,10 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--signal-histogram",
-        default="2stop_1250_2024_splitLSP",
-        help="Name of the signal histogram to sum across input files",
+        help=(
+            "Signal histogram name to sum. By default, auto-detect the single "
+            "histogram whose name starts with '2stop_' in each input file."
+        ),
     )
     parser.add_argument(
         "--background",
@@ -51,7 +53,21 @@ def main() -> None:
     summed_signal = None
     for path in args.shapes:
         with uproot.open(path) as f:
-            hist = f[args.signal_histogram].to_hist()
+            if args.signal_histogram:
+                signal_name = args.signal_histogram
+            else:
+                candidates = [
+                    key.split(";")[0]
+                    for key in f.keys()
+                    if key.split(";")[0].startswith("2stop_")
+                ]
+                if len(candidates) != 1:
+                    raise ValueError(
+                        f"Expected one 2stop_ signal histogram in {path}, "
+                        f"found {candidates}"
+                    )
+                signal_name = candidates[0]
+            hist = f[signal_name].to_hist()
             summed_signal = hist.copy() if summed_signal is None else summed_signal + hist
 
     with uproot.open(args.shapes[0]) as f:

@@ -103,6 +103,8 @@ def read_rows(path: Path) -> list[dict[str, float | str]]:
             parsed["mlsp"] = float(row["mlsp"])
             for column in LIMIT_COLUMNS:
                 parsed[column] = float(row[column]) if row[column] else math.nan
+            if row.get("xsec_fb"):
+                parsed["xsec_fb"] = float(row["xsec_fb"])
             rows.append(parsed)
     if not rows:
         raise ValueError(f"No rows found in {path}")
@@ -146,7 +148,8 @@ def main() -> int:
     value_key = args.quantity if args.plot_r else f"{args.quantity}_xsec_pb"
     for row in rows:
         limit_r = float(row[args.quantity])
-        row[value_key] = limit_r if args.plot_r else limit_r * args.xsec_fb / 1000.0
+        xsec_fb = float(row.get("xsec_fb", args.xsec_fb))
+        row[value_key] = limit_r if args.plot_r else limit_r * xsec_fb / 1000.0
 
     x_centers = np.array(sorted({float(row["mstop"]) for row in rows}), dtype=float)
     y_centers = np.array(sorted({float(row["mlsp"]) for row in rows}), dtype=float)

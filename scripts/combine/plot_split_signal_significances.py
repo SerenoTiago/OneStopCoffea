@@ -33,7 +33,7 @@ def parse_args() -> argparse.Namespace:
 
 def read_points(combine_dir: Path) -> list[tuple[int, int, float, Path]]:
     points = []
-    for log_path in sorted(combine_dir.glob("T2tt_mStop-*_mLSP-*/*_significance.log")):
+    for log_path in sorted(combine_dir.glob("mStop-*/T2tt_mStop-*_mLSP-*/*_significance.log")):
         point_match = POINT_RE.search(log_path.parent.name)
         significance_match = SIGNIFICANCE_RE.search(log_path.read_text(errors="replace"))
         if point_match is None or significance_match is None:

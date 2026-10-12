@@ -9,22 +9,21 @@
 # local inputs, normalization, labels, and output names remain explicitly Run 3.
 #
 # Optional overrides (env vars):
-#   SIGNAL_DIR      default: analysis_products/results/2026-10-01_run3_2024_109p95fb_t2tt_1250_offline_trigger_approx
+#   SIGNAL_DIR      default: analysis_products/results/2026-10-11_run3_2024_t2tt_grid_expanded_signals
 #                            (--test: analysis_products/old_results/26-09-10_hadsusy_signal_10k)
-#   BACKGROUND_DIR  default: analysis_products/results/2026-09-28_run3_2024_109p95fb_backgrounds_full_with_HLT
+#   BACKGROUND_DIR  default: analysis_products/production_runs/2026-10-07_012944_hadronic_susy/background_results
+#                            (complete 2024 backgrounds, same selection as the signals)
 #                            (--test: analysis_products/old_results/26-09-10_hadsusy_backgrounds_10k)
-#   BACKGROUND_GLOB default: *_1.result for the validated full-run rerun set
+#   BACKGROUND_GLOB default: *.result
 #   SIGNAL_GLOB     default: *.result
-#   COMBINE_DIR     default: analysis_products/combine/2026-10-06_run3_2024_projection_137fb_t2tt_1250_offline_trigger_approx
+#   COMBINE_DIR     default: analysis_products/combine/2026-10-11_run3_2024_t2tt_grid_expanded_1007bkg_automcstats_expected_137fb
 #   TARGET_LUMINOSITY_FB default: 137.0
+#   JOBS            default: 4 concurrent mass points
 #   LOCAL_LUMINOSITY_FB  deprecated alias for TARGET_LUMINOSITY_FB
 #   COLLISION_ENERGY_TEV default: 13.6
 #   SEARCHBIN_PLOT_DIR   default: $COMBINE_DIR/search_bin_diagnostics
 #   SEARCHBIN_COMBINED_OUT default: $COMBINE_DIR/search_bin_diagnostics_combined.png
 #                          (primary plot: all mLSP signals summed into one "signal" line)
-#   COMPARISON_OUT default: $COMBINE_DIR/t2tt_hepdata_comparison_expected
-#   OBSERVED_COMPARISON_OUT default: $COMBINE_DIR/t2tt_hepdata_comparison_observed_context
-#   SIGNAL_XSEC_FB default: 0.7526 (reference T2tt cross section used by the samples)
 #   ANALYSIS_PYTHON default: $PWD/.venv-local10k/bin/python
 
 set -euo pipefail
@@ -41,31 +40,23 @@ if [[ "$TEST_MODE" == "true" ]]; then
     DEFAULT_SIGNAL_DIR="analysis_products/old_results/26-09-10_hadsusy_signal_10k"
     DEFAULT_BACKGROUND_DIR="analysis_products/old_results/26-09-10_hadsusy_backgrounds_10k"
 else
-    DEFAULT_SIGNAL_DIR="analysis_products/results/2026-10-01_run3_2024_109p95fb_t2tt_1250_offline_trigger_approx"
-    DEFAULT_BACKGROUND_DIR="analysis_products/results/2026-09-28_run3_2024_109p95fb_backgrounds_full_with_HLT"
+    DEFAULT_SIGNAL_DIR="analysis_products/results/2026-10-11_run3_2024_t2tt_grid_expanded_signals"
+    DEFAULT_BACKGROUND_DIR="analysis_products/production_runs/2026-10-07_012944_hadronic_susy/background_results"
 fi
 
 SIGNAL_DIR="${SIGNAL_DIR:-$DEFAULT_SIGNAL_DIR}"
 BACKGROUND_DIR="${BACKGROUND_DIR:-$DEFAULT_BACKGROUND_DIR}"
 SIGNAL_GLOB="${SIGNAL_GLOB:-*.result}"
-if [[ "$TEST_MODE" == "true" ]]; then
-    BACKGROUND_GLOB="${BACKGROUND_GLOB:-*.result}"
-else
-    # The full background directory also contains an earlier result for each
-    # sample.  The validated 109.95 fb^-1 chain used the later `_1` rerun set.
-    BACKGROUND_GLOB="${BACKGROUND_GLOB:-*_1.result}"
-fi
-MERGED_DIR="${MERGED_DIR:-.application_data/combine_inputs_run3_2024_projection_137fb_t2tt_1250_offline_trigger_approx}"
-CONFIG_DIR="${CONFIG_DIR:-.application_data/generated_postprocess/run3_2024_projection_137fb_t2tt_1250_offline_trigger_approx}"
-COMBINE_DIR="${COMBINE_DIR:-analysis_products/combine/2026-10-06_run3_2024_projection_137fb_t2tt_1250_offline_trigger_approx}"
-LIMITS_CSV="${LIMITS_CSV:-$COMBINE_DIR/limits.csv}"
-COMPARISON_OUT="${COMPARISON_OUT:-$COMBINE_DIR/t2tt_hepdata_comparison_expected}"
-OBSERVED_COMPARISON_OUT="${OBSERVED_COMPARISON_OUT:-$COMBINE_DIR/t2tt_hepdata_comparison_observed_context}"
+BACKGROUND_GLOB="${BACKGROUND_GLOB:-*.result}"
+MERGED_DIR="${MERGED_DIR:-.application_data/combine_inputs_2026-10-11_t2tt_grid_expanded_1007bkg}"
+CONFIG_DIR="${CONFIG_DIR:-.application_data/generated_postprocess/2026-10-11_t2tt_grid_expanded_1007bkg_automcstats_expected_137fb}"
+COMBINE_DIR="${COMBINE_DIR:-analysis_products/combine/2026-10-11_run3_2024_t2tt_grid_expanded_1007bkg_automcstats_expected_137fb}"
+LIMITS_CSV="${LIMITS_CSV:-$COMBINE_DIR/limits_expected.csv}"
 SEARCHBIN_PLOT_DIR="${SEARCHBIN_PLOT_DIR:-$COMBINE_DIR/search_bin_diagnostics}"
 SEARCHBIN_COMBINED_OUT="${SEARCHBIN_COMBINED_OUT:-$COMBINE_DIR/search_bin_diagnostics_combined.png}"
 TARGET_LUMINOSITY_FB="${TARGET_LUMINOSITY_FB:-${LOCAL_LUMINOSITY_FB:-137.0}}"
 COLLISION_ENERGY_TEV="${COLLISION_ENERGY_TEV:-13.6}"
-SIGNAL_XSEC_FB="${SIGNAL_XSEC_FB:-0.7526}"
+JOBS="${JOBS:-4}"
 ANALYSIS_PYTHON="${ANALYSIS_PYTHON:-$PWD/.venv-local10k/bin/python}"
 ALLOW_MISSING_FLAG=""
 if [[ "$TEST_MODE" == "true" ]]; then
@@ -96,23 +87,19 @@ ln -sf "$(realpath "$BACKGROUND_DIR")"/$BACKGROUND_GLOB "$MERGED_DIR"/
 echo "=== 1/4: generating + running per-signal datacards ==="
 "$ANALYSIS_PYTHON" scripts/combine/make_split_signal_datacards.py \
     "$MERGED_DIR" --output-dir "$COMBINE_DIR" --config-dir "$CONFIG_DIR" \
-    --run --overwrite --luminosity-override "$TARGET_LUMINOSITY_FB" $ALLOW_MISSING_FLAG
+    --run --overwrite --luminosity-override "$TARGET_LUMINOSITY_FB" \
+    --jobs "$JOBS" $ALLOW_MISSING_FLAG
 
 echo "=== 2/4: running combine (host apptainer) ==="
-python3 scripts/combine/run_split_signal_combine.py "$COMBINE_DIR" --keep-going
+python3 scripts/combine/run_split_signal_combine.py \
+    "$COMBINE_DIR" --keep-going --expected-only --jobs "$JOBS"
 
-echo "=== 3/4: collecting limits + plotting Run-3/Run-2-reference comparison ==="
+echo "=== 3/4: collecting limits + plotting the Run-3 expected-limit surface ==="
 "$ANALYSIS_PYTHON" scripts/combine/collect_split_signal_limits.py \
-    "$COMBINE_DIR" --output "$LIMITS_CSV"
-"$ANALYSIS_PYTHON" scripts/combine/plot_t2tt_hepdata_comparison.py \
-    --limits-csv "$LIMITS_CSV" --output "$COMPARISON_OUT" \
-    --local-luminosity-fb "$TARGET_LUMINOSITY_FB" \
-    --xsec-fb "$SIGNAL_XSEC_FB" --quantity expected
-"$ANALYSIS_PYTHON" scripts/combine/plot_t2tt_hepdata_comparison.py \
-    --limits-csv "$LIMITS_CSV" --output "$OBSERVED_COMPARISON_OUT" \
-    --local-luminosity-fb "$TARGET_LUMINOSITY_FB" \
-    --xsec-fb "$SIGNAL_XSEC_FB" --quantity observed \
-    --local-observation-type asimov
+    "$COMBINE_DIR" --output "$LIMITS_CSV" --expected-only
+"$ANALYSIS_PYTHON" scripts/combine/plot_split_signal_limits.py \
+    "$LIMITS_CSV" --output "$COMBINE_DIR/expected_limits_2d" \
+    --quantity exp --paper-scale
 
 echo "=== 4/4: 174-bin Run-3 search-region diagnostic plots ==="
 mkdir -p "$SEARCHBIN_PLOT_DIR" "$(dirname "$SEARCHBIN_COMBINED_OUT")"
@@ -133,7 +120,7 @@ print(' '.join(f'--background {b}' for b in defaults if b in keys))
 
 # One plot per mass point.
 shapes_files=()
-for point_dir in "$COMBINE_DIR"/T2tt_mStop-*_mLSP-*; do
+for point_dir in "$COMBINE_DIR"/mStop-*/T2tt_mStop-*_mLSP-*; do
     point=$(basename "$point_dir")
     shapes_file="$point_dir/shapes_bins_hadsusy.root"
     [[ -f "$shapes_file" ]] || continue
@@ -149,15 +136,13 @@ done
 # Primary combined plot: all mLSP signals summed into one "signal" line.
 COMBINED_SHAPES="$COMBINE_DIR/shapes_all_signals_combined.root"
 "$ANALYSIS_PYTHON" scripts/combine/build_combined_signal_shapes.py \
-    "${shapes_files[@]}" --signal-histogram "$signal_hist" -o "$COMBINED_SHAPES"
+    "${shapes_files[@]}" -o "$COMBINED_SHAPES"
 plot_diag "$COMBINED_SHAPES" "$SEARCHBIN_COMBINED_OUT" signal
 echo
 echo "=== Done. Outputs: ==="
-echo "  $COMBINE_DIR/T2tt_mStop-*_mLSP-*/  (datacards, combine logs, shapes ROOT files)"
+echo "  $COMBINE_DIR/mStop-*/T2tt_mStop-*_mLSP-*/  (datacards, combine logs, shapes ROOT files)"
 echo "  $LIMITS_CSV"
-echo "  ${COMPARISON_OUT}.png / .pdf  (median expected Run-3 vs median expected Run-2)"
-echo "  ${COMPARISON_OUT}_values.csv"
-echo "  ${OBSERVED_COMPARISON_OUT}.png / .pdf  (Run-3 MC Asimov observed vs Run-2 observed context)"
-echo "  ${OBSERVED_COMPARISON_OUT}_values.csv"
+echo "  $COMBINE_DIR/expected_limits_2d-paper_scale.png / .pdf"
+echo "  $COMBINE_DIR/expected_limits_2d-paper_scale_values.csv"
 echo "  $SEARCHBIN_COMBINED_OUT  (primary 174-bin plot: all mLSP signals summed into one 'signal' line)"
 echo "  $SEARCHBIN_PLOT_DIR/T2tt_mStop-*_mLSP-*.png  (one 174-bin plot per mass point)"

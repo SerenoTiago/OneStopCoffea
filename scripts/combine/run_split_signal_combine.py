@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import shutil
 import subprocess
 import sys
@@ -63,6 +64,17 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Run expected Asimov significance only; skip AsymptoticLimits.",
     )
+    parser.add_argument(
+        "--expected-only",
+        action="store_true",
+        help="Run only blinded expected AsymptoticLimits; skip significance and observed limits.",
+    )
+    parser.add_argument(
+        "--jobs",
+        type=int,
+        default=1,
+        help="Number of mass points to run concurrently (default: 1).",
+    )
     return parser.parse_args()
 
 
@@ -71,7 +83,12 @@ def shell_quote(value: str) -> str:
 
 
 def combine_container_command(
-    point_dir: Path, datacard: Path, method: str, image: str, runtime: str
+    point_dir: Path,
+    datacard: Path,
+    method: str,
+    image: str,
+    runtime: str,
+    expected_only: bool = False,
 ) -> list[str]:
     point_dir = point_dir.resolve()
     return [
@@ -93,6 +110,7 @@ def combine_container_command(
             f"cd {shell_quote(str(point_dir))} && "
             f"combine -M {method} {shell_quote(datacard.name)}"
             + (" -t -1 --expectSignal=1" if method == "Significance" else "")
+            + (" --run blind" if method == "AsymptoticLimits" and expected_only else "")
         ),
     ]
 
@@ -141,7 +159,8 @@ def main() -> int:
         return 2
 
     point_dirs = sorted(
-        path for path in combine_dir.glob("T2tt_mStop-*_mLSP-*") if path.is_dir()
+        path for path in combine_dir.glob("mStop-*/T2tt_mStop-*_mLSP-*")
+        if path.is_dir()
     )
     if not point_dirs:
         print(
@@ -150,18 +169,18 @@ def main() -> int:
         )
         return 2
 
-    failures = 0
-    for point_dir in point_dirs:
+    if args.jobs < 1:
+        print("ERROR: --jobs must be at least 1", file=sys.stderr)
+        return 2
+
+    def run_point(point_dir: Path) -> int:
         print(f"Point: {point_dir.name}")
 
         if args.use_generated_script:
             script = point_dir / "run_combine.sh"
             if not script.exists():
                 print(f"ERROR: missing {script}", file=sys.stderr)
-                failures += 1
-                if not args.keep_going:
-                    return 2
-                continue
+                return 2
 
             cmd = ["bash", script.name]
             if args.merge:
@@ -169,7 +188,7 @@ def main() -> int:
 
             print("Running:", " ".join(shell_quote(part) for part in cmd))
             if args.dry_run:
-                continue
+                return 0
             completed = subprocess.run(cmd, cwd=point_dir)
             rc = completed.returncode
         else:
@@ -180,19 +199,9 @@ def main() -> int:
                     f"found {len(datacards)}",
                     file=sys.stderr,
                 )
-                failures += 1
-                if not args.keep_going:
-                    return 2
-                continue
+                return 2
             datacard = datacards[0]
-            rc = run_and_log(
-                combine_container_command(
-                    point_dir, datacard, "Significance", args.combine_image, runtime
-                ),
-                point_dir / f"{datacard.stem}_significance.log",
-                args.dry_run,
-            )
-            if rc == 0 and not args.significance_only:
+            if args.expected_only:
                 rc = run_and_log(
                     combine_container_command(
                         point_dir,
@@ -200,19 +209,54 @@ def main() -> int:
                         "AsymptoticLimits",
                         args.combine_image,
                         runtime,
+                        expected_only=True,
                     ),
                     point_dir / f"{datacard.stem}_limits.log",
                     args.dry_run,
                 )
+            else:
+                rc = run_and_log(
+                    combine_container_command(
+                        point_dir, datacard, "Significance", args.combine_image, runtime
+                    ),
+                    point_dir / f"{datacard.stem}_significance.log",
+                    args.dry_run,
+                )
+                if rc == 0 and not args.significance_only:
+                    rc = run_and_log(
+                        combine_container_command(
+                            point_dir,
+                            datacard,
+                            "AsymptoticLimits",
+                            args.combine_image,
+                            runtime,
+                        ),
+                        point_dir / f"{datacard.stem}_limits.log",
+                        args.dry_run,
+                    )
 
         if rc != 0:
-            failures += 1
             print(
                 f"ERROR: combine failed in {point_dir} with exit code {rc}",
                 file=sys.stderr,
             )
-            if not args.keep_going:
-                return rc
+        return rc
+
+    failures = 0
+    if args.jobs == 1:
+        for point_dir in point_dirs:
+            rc = run_point(point_dir)
+            if rc != 0:
+                failures += 1
+                if not args.keep_going:
+                    return rc
+    else:
+        with ThreadPoolExecutor(max_workers=args.jobs) as executor:
+            futures = {executor.submit(run_point, point_dir): point_dir for point_dir in point_dirs}
+            for future in as_completed(futures):
+                rc = future.result()
+                if rc != 0:
+                    failures += 1
 
     if failures:
         print(f"Completed with {failures} failed combine points.", file=sys.stderr)
