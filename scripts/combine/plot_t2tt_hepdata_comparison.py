@@ -18,6 +18,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm, Normalize
 import numpy as np
+import uproot
 import yaml
 
 
@@ -36,6 +37,18 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=Path("analysis_products/combine/split_signals/limits.csv"),
         help="CSV produced by collect_split_signal_limits.py.",
+    )
+    parser.add_argument(
+        "--hepdata-root",
+        type=Path,
+        default=Path(
+            "data/SUS-19-006/audit_2026-09-10/"
+            "CMS-SUS-19-006_Figure_014-a.root"
+        ),
+        help=(
+            "Official Figure 14a ROOT file. MassScan2DExp (expected) or "
+            "MassScan2D (observed) is queried with containing-bin semantics."
+        ),
     )
     parser.add_argument(
         "--hepdata-json",
@@ -379,86 +392,102 @@ def read_hepdata_points(path: Path, quantity: str) -> list[dict[str, float]]:
     return points
 
 
+def read_figure14_surface(path: Path, quantity: str) -> dict[str, Any]:
+    """Read the published Figure 14a TH2 surface without treating centers as points."""
+    object_name = "MassScan2D" if quantity == "observed" else "MassScan2DExp"
+    with uproot.open(path) as root_file:
+        histogram = root_file[object_name]
+        if not histogram.classname.startswith("TH2"):
+            raise TypeError(
+                f"{path}:{object_name} is {histogram.classname}, expected a TH2"
+            )
+        values = np.asarray(histogram.values(flow=False), dtype=float)
+        x_edges = np.asarray(histogram.axis(0).edges(flow=False), dtype=float)
+        y_edges = np.asarray(histogram.axis(1).edges(flow=False), dtype=float)
+    expected_shape = (len(x_edges) - 1, len(y_edges) - 1)
+    if values.shape != expected_shape:
+        raise ValueError(
+            f"{path}:{object_name} has shape {values.shape}, expected {expected_shape}"
+        )
+    print(
+        f"Using Figure 14a ROOT object: {path}:{object_name} "
+        f"({values.shape[0]} x bins, {values.shape[1]} y bins)"
+    )
+    return {
+        "values": values,
+        "x_edges": x_edges,
+        "y_edges": y_edges,
+        "x_centers": (x_edges[:-1] + x_edges[1:]) / 2.0,
+        "y_centers": (y_edges[:-1] + y_edges[1:]) / 2.0,
+    }
+
+
+def surface_from_hepdata_points(points: list[dict[str, float]]) -> dict[str, Any]:
+    """Reconstruct the published raster if the official ROOT file is unavailable."""
+    x_centers = np.array(sorted({point["mstop"] for point in points}), dtype=float)
+    y_centers = np.array(sorted({point["mlsp"] for point in points}), dtype=float)
+    x_edges = centers_to_edges(x_centers, 50.0)
+    y_edges = centers_to_edges(y_centers, 50.0)
+    values = np.full((len(x_centers), len(y_centers)), np.nan, dtype=float)
+    x_index = {value: index for index, value in enumerate(x_centers)}
+    y_index = {value: index for index, value in enumerate(y_centers)}
+    for point in points:
+        values[x_index[point["mstop"]], y_index[point["mlsp"]]] = point["limit_pb"]
+    return {
+        "values": values,
+        "x_edges": x_edges,
+        "y_edges": y_edges,
+        "x_centers": x_centers,
+        "y_centers": y_centers,
+    }
+
+
 def point_key(mstop: float, mlsp: float) -> tuple[int, int]:
     return (int(round(mstop)), int(round(mlsp)))
 
 
-def median_spacing(values: list[float]) -> float:
-    unique = np.array(sorted(set(float(value) for value in values)), dtype=float)
-    if len(unique) < 2:
-        return math.inf
-    diffs = np.diff(unique)
-    diffs = diffs[diffs > 0]
-    if len(diffs) == 0:
-        return math.inf
-    return float(np.median(diffs))
-
-
 def match_official_points(
     local_points: list[dict[str, float]],
-    official_points: list[dict[str, float]],
+    surface: dict[str, Any],
 ) -> tuple[list[dict[str, float]], list[tuple[int, int]], str]:
-    official_by_key = {point_key(point["mstop"], point["mlsp"]): point for point in official_points if point["limit_pb"] > 0}
-    exact_matches: list[dict[str, float]] = []
+    """Look up each physical mass coordinate in its containing TH2 bin.
+
+    This is equivalent to ROOT ``TAxis::FindBin`` for in-range coordinates.
+    Bin-center equality and interpolation are deliberately not used.
+    """
+    values = np.asarray(surface["values"], dtype=float)
+    x_edges = np.asarray(surface["x_edges"], dtype=float)
+    y_edges = np.asarray(surface["y_edges"], dtype=float)
+    x_centers = np.asarray(surface["x_centers"], dtype=float)
+    y_centers = np.asarray(surface["y_centers"], dtype=float)
+
+    matches: list[dict[str, float]] = []
     unmatched_local: list[tuple[int, int]] = []
     for local in local_points:
         key = point_key(local["mstop"], local["mlsp"])
-        official = official_by_key.get(key)
-        if official is None:
+        x = float(local["mstop"])
+        y = float(local["mlsp"])
+        if not (x_edges[0] <= x < x_edges[-1] and y_edges[0] <= y < y_edges[-1]):
             unmatched_local.append(key)
             continue
-        exact_matches.append(
-            {
-                "mstop": local["mstop"],
-                "mlsp": local["mlsp"],
-                "run3_limit_pb": local["limit_pb"],
-                "run2_hepdata_limit_pb": official["limit_pb"],
-                "ratio": local["limit_pb"] / official["limit_pb"],
-                "run2_hepdata_mstop": official["mstop"],
-                "run2_hepdata_mlsp": official["mlsp"],
-            }
-        )
-    if exact_matches:
-        return exact_matches, unmatched_local, "exact"
-
-    stop_tol = 0.5001 * median_spacing([point["mstop"] for point in official_points])
-    lsp_tol = 0.5001 * median_spacing([point["mlsp"] for point in official_points])
-    positive_official = [point for point in official_points if point["limit_pb"] > 0]
-    nearest_matches = []
-    nearest_unmatched = []
-    for local in local_points:
-        candidates = [
-            point
-            for point in positive_official
-            if abs(point["mstop"] - local["mstop"]) <= stop_tol
-            and abs(point["mlsp"] - local["mlsp"]) <= lsp_tol
-        ]
-        if not candidates:
-            nearest_unmatched.append(point_key(local["mstop"], local["mlsp"]))
+        ix = int(np.searchsorted(x_edges, x, side="right") - 1)
+        iy = int(np.searchsorted(y_edges, y, side="right") - 1)
+        official_limit = float(values[ix, iy])
+        if not np.isfinite(official_limit) or official_limit <= 0:
+            unmatched_local.append(key)
             continue
-        official = min(
-            candidates,
-            key=lambda point: (
-                abs(point["mstop"] - local["mstop"]) / stop_tol if np.isfinite(stop_tol) else 0.0
-            )
-            ** 2
-            + (
-                abs(point["mlsp"] - local["mlsp"]) / lsp_tol if np.isfinite(lsp_tol) else 0.0
-            )
-            ** 2,
-        )
-        nearest_matches.append(
+        matches.append(
             {
-                "mstop": local["mstop"],
-                "mlsp": local["mlsp"],
-                "run3_limit_pb": local["limit_pb"],
-                "run2_hepdata_limit_pb": official["limit_pb"],
-                "ratio": local["limit_pb"] / official["limit_pb"],
-                "run2_hepdata_mstop": official["mstop"],
-                "run2_hepdata_mlsp": official["mlsp"],
+                "mstop": x,
+                "mlsp": y,
+                "run3_limit_pb": float(local["limit_pb"]),
+                "run2_hepdata_limit_pb": official_limit,
+                "ratio": float(local["limit_pb"]) / official_limit,
+                "run2_hepdata_mstop": float(x_centers[ix]),
+                "run2_hepdata_mlsp": float(y_centers[iy]),
             }
         )
-    return nearest_matches, nearest_unmatched, "nearest-bin"
+    return matches, unmatched_local, "containing-bin"
 
 
 def one_column_grid(points: list[dict[str, float]], value_key: str, stop_mass: float) -> tuple[np.ndarray, np.ndarray, np.ndarray, list[dict[str, float]]]:
@@ -545,13 +574,15 @@ def main() -> int:
     local_lsp_values = sorted({point["mlsp"] for point in local_points})
     lsp_min, lsp_max = min(local_lsp_values), max(local_lsp_values)
 
-    hepdata_path = find_hepdata_json(args.hepdata_json)
-    hepdata_points_all = read_hepdata_points(hepdata_path, args.quantity)
-    hepdata_points = hepdata_points_all
-    if not hepdata_points:
-        raise ValueError("No HEPData points found.")
-
-    matched, unmatched_local, match_mode = match_official_points(local_points, hepdata_points)
+    if args.hepdata_root.is_file():
+        surface = read_figure14_surface(args.hepdata_root, args.quantity)
+    else:
+        hepdata_path = find_hepdata_json(args.hepdata_json)
+        surface = surface_from_hepdata_points(
+            read_hepdata_points(hepdata_path, args.quantity)
+        )
+        print("Figure 14a ROOT file unavailable; using containing bins reconstructed from HEPData centers.")
+    matched, unmatched_local, match_mode = match_official_points(local_points, surface)
     if not matched:
         raise ValueError("No local/HEPData mass points matched; interpolation is intentionally not used.")
 
@@ -602,7 +633,7 @@ def main() -> int:
         (
             "Run 3\nMC Asimov observed limit"
             if args.quantity == "observed" and args.local_observation_type == "asimov"
-            else "Run 3\nMedian expected limits"
+            else "Run 3, 13.6 TeV\nDirect-MC projection\nMedian expected limits"
         )
         + "\n"
         + rf"{args.local_luminosity_fb:g} fb$^{{-1}}$, "
@@ -663,8 +694,8 @@ def main() -> int:
     print(f"Identified local stop mass: {stop_mass:g} GeV")
     print(f"Local LSP range: {lsp_min:g}-{lsp_max:g} GeV")
     print(f"Matched mass points: {len(matched)} ({match_mode})")
-    if match_mode == "nearest-bin":
-        print("Nearest HEPData bins used:")
+    if match_mode == "containing-bin":
+        print("Containing Figure 14a bins used (reported coordinates are bin centers):")
         for row in matched:
             print(
                 "  "
