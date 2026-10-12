@@ -195,5 +195,41 @@ analyzer:
 location_priorities: [".*(T0|T1|T2).*", eos]
 
 event_collections:
+  - dataset: 2stop_600_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_700_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_900_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_950_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1000_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1050_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1100_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1150_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1200_2024_splitLSP
+    pipelines: [susy_full_validation]
   - dataset: 2stop_1250_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1300_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1350_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1400_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1450_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1500_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1600_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1700_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1800_2024_splitLSP
+    pipelines: [susy_full_validation]
+  - dataset: 2stop_1900_2024_splitLSP
     pipelines: [susy_full_validation]

@@ -1,0 +1,72 @@
+- name: 2stop_1000_2024_splitLSP
+  title: 2 stop 1000 GeV split LSP
+  sample_type: MC
+  era: '2024'
+  other_data:
+    nanoversion: V15
+    stop_mass: 1000
+    cross_section_source: LHC SUSY Cross Section Working Group, 13.6 TeV NNLOapprox+NNLL
+  samples:
+  - name: signal_T2tt_1000_1
+    n_events: 64723
+    x_sec: 9.123
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/8b972666-cb93-4217-8981-95f557b0a871/signal_T2tt_1000_1.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/c9994eaf-db34-4554-b4c7-9ac653026797/signal_T2tt_1000_1.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/dc99372c-9fb5-4f7c-a485-7d5819dfe022/signal_T2tt_1000_1.root
+  - name: signal_T2tt_1000_100
+    n_events: 45710
+    x_sec: 9.123
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/8b972666-cb93-4217-8981-95f557b0a871/signal_T2tt_1000_100.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/c9994eaf-db34-4554-b4c7-9ac653026797/signal_T2tt_1000_100.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/dc99372c-9fb5-4f7c-a485-7d5819dfe022/signal_T2tt_1000_100.root
+  - name: signal_T2tt_1000_200
+    n_events: 75462
+    x_sec: 9.123
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/8b972666-cb93-4217-8981-95f557b0a871/signal_T2tt_1000_200.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/c9994eaf-db34-4554-b4c7-9ac653026797/signal_T2tt_1000_200.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/dc99372c-9fb5-4f7c-a485-7d5819dfe022/signal_T2tt_1000_200.root
+  - name: signal_T2tt_1000_300
+    n_events: 59802
+    x_sec: 9.123
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/8b972666-cb93-4217-8981-95f557b0a871/signal_T2tt_1000_300.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/c9994eaf-db34-4554-b4c7-9ac653026797/signal_T2tt_1000_300.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/dc99372c-9fb5-4f7c-a485-7d5819dfe022/signal_T2tt_1000_300.root
+  - name: signal_T2tt_1000_400
+    n_events: 62407
+    x_sec: 9.123
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/8b972666-cb93-4217-8981-95f557b0a871/signal_T2tt_1000_400.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/c9994eaf-db34-4554-b4c7-9ac653026797/signal_T2tt_1000_400.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/dc99372c-9fb5-4f7c-a485-7d5819dfe022/signal_T2tt_1000_400.root
+  - name: signal_T2tt_1000_500
+    n_events: 49953
+    x_sec: 9.123
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/8b972666-cb93-4217-8981-95f557b0a871/signal_T2tt_1000_500.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/c9994eaf-db34-4554-b4c7-9ac653026797/signal_T2tt_1000_500.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/dc99372c-9fb5-4f7c-a485-7d5819dfe022/signal_T2tt_1000_500.root
+  - name: signal_T2tt_1000_600
+    n_events: 62213
+    x_sec: 9.123
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/8b972666-cb93-4217-8981-95f557b0a871/signal_T2tt_1000_600.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/c9994eaf-db34-4554-b4c7-9ac653026797/signal_T2tt_1000_600.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/dc99372c-9fb5-4f7c-a485-7d5819dfe022/signal_T2tt_1000_600.root
+  - name: signal_T2tt_1000_700
+    n_events: 62229
+    x_sec: 9.123
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/8b972666-cb93-4217-8981-95f557b0a871/signal_T2tt_1000_700.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/c9994eaf-db34-4554-b4c7-9ac653026797/signal_T2tt_1000_700.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/dc99372c-9fb5-4f7c-a485-7d5819dfe022/signal_T2tt_1000_700.root
+  - name: signal_T2tt_1000_800
+    n_events: 73243
+    x_sec: 9.123
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/8b972666-cb93-4217-8981-95f557b0a871/signal_T2tt_1000_800.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/c9994eaf-db34-4554-b4c7-9ac653026797/signal_T2tt_1000_800.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-1000/dc99372c-9fb5-4f7c-a485-7d5819dfe022/signal_T2tt_1000_800.root

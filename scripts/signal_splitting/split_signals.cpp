@@ -7,7 +7,6 @@
 #include <fstream>
 #include <filesystem>
 #include <stdexcept>
-#include <optional>
 #include "TFile.h"
 #include "TTree.h"
 #include "ROOT/RDataFrame.hxx"
@@ -42,13 +41,14 @@ std::vector<std::string> getFiles(){
 
 }
 
-bool matchesRequestedModel(const std::string& branch_name, const std::optional<std::string>& requested_model){
-    if(!requested_model) {return true;}
-    return branch_name == *requested_model || branch_name == "GenModel_" + *requested_model;
+bool matchesRequestedModel(const std::string& branch_name, const std::unordered_set<std::string>& requested_models){
+    if(requested_models.empty()) {return true;}
+    return requested_models.contains(branch_name)
+        || (branch_name.starts_with("GenModel_") && requested_models.contains(branch_name.substr(9)));
 }
 
 
-void processOneFile(const std::filesystem::path& infile, const std::filesystem::path& outdir, const std::optional<std::string>& requested_model = std::nullopt){
+void processOneFile(const std::filesystem::path& infile, const std::filesystem::path& outdir, const std::unordered_set<std::string>& requested_models = {}){
     std::cout << std::format("Processing {} file to outdirectory {}\n", infile.string(), outdir.string());
 
     auto base = infile.stem().string();
@@ -62,7 +62,7 @@ void processOneFile(const std::filesystem::path& infile, const std::filesystem::
         if(name.find("GenModel") == std::string::npos){
             other_names.push_back(name);
         } else {
-            if(matchesRequestedModel(name, requested_model)){
+            if(matchesRequestedModel(name, requested_models)){
                 gen_names.push_back(name);
             }
 
@@ -70,12 +70,26 @@ void processOneFile(const std::filesystem::path& infile, const std::filesystem::
     }
 
     if(gen_names.empty()){
-        throw std::runtime_error(requested_model ? std::format("Could not find requested model {}", *requested_model) : "No GenModel columns found");
+        throw std::runtime_error(requested_models.empty() ? "No GenModel columns found" : "Could not find any requested GenModel columns");
     }
 
     for(const auto& name : gen_names){
         auto filtered = rdf.Filter([](bool x){return x;}, {name});
-        const auto final_name = getUniquePath(outdir / base / ( std::string("signal") + name.substr(8,name.size()-1) + ".root"));
+        // Group T2tt source-file shards by the generator-level stop mass.
+        // Other models retain the historical layout because their second
+        // model-name field is not necessarily a stop mass.
+        const auto model_name = name.starts_with("GenModel_") ? name.substr(9) : name;
+        auto relative_name = std::filesystem::path(base) / (std::string("signal") + name.substr(8,name.size()-1) + ".root");
+        if(model_name.starts_with("T2tt_")){
+            const auto first_separator = model_name.find('_');
+            const auto second_separator = model_name.find('_', first_separator + 1);
+            if(second_separator == std::string::npos){
+                throw std::runtime_error(std::format("Could not parse T2tt stop mass from {}", name));
+            }
+            const auto stop_mass = model_name.substr(first_separator + 1, second_separator - first_separator - 1);
+            relative_name = std::filesystem::path("mStop-" + stop_mass) / relative_name;
+        }
+        const auto final_name = getUniquePath(outdir / relative_name);
         std::filesystem::create_directories(final_name.parent_path());
         std::cout << std::format("Saving {} to {}\n", name, final_name.string());
         ROOT::RDF::RSnapshotOptions opts;
@@ -93,16 +107,16 @@ void processOneFile(const std::filesystem::path& infile, const std::filesystem::
 
 
 int main(int argc, char* argv[]) {
-    if(argc != 3 && argc != 4){
-        std::cerr << std::format("Usage: {} INPUT OUTPUT_DIR [MODEL]\n", argv[0]);
+    if(argc < 3){
+        std::cerr << std::format("Usage: {} INPUT OUTPUT_DIR [MODEL ...]\n", argv[0]);
         return 1;
     }
     std::string fname(argv[1]);
     std::string outdir(argv[2]);
-    std::optional<std::string> model;
-    if(argc == 4){
-        model = argv[3];
+    std::unordered_set<std::string> models;
+    for(int i = 3; i < argc; ++i){
+        models.insert(argv[i]);
     }
-    processOneFile(fname, outdir, model);
+    processOneFile(fname, outdir, models);
     return 0;
 }

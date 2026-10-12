@@ -1,0 +1,45 @@
+- name: 2stop_700_2024_splitLSP
+  title: 2 stop 700 GeV split LSP
+  sample_type: MC
+  era: '2024'
+  other_data:
+    nanoversion: V15
+    stop_mass: 700
+    cross_section_source: LHC SUSY Cross Section Working Group, 13.6 TeV NNLOapprox+NNLL
+  samples:
+  - name: signal_T2tt_700_1
+    n_events: 90950
+    x_sec: 99.05
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-700/902d9dda-69e7-4ac6-a243-31507bc90a5f/signal_T2tt_700_1.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-700/b320f7bb-dee9-4779-9440-0f02618698a2/signal_T2tt_700_1.root
+  - name: signal_T2tt_700_100
+    n_events: 77410
+    x_sec: 99.05
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-700/902d9dda-69e7-4ac6-a243-31507bc90a5f/signal_T2tt_700_100.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-700/b320f7bb-dee9-4779-9440-0f02618698a2/signal_T2tt_700_100.root
+  - name: signal_T2tt_700_200
+    n_events: 96815
+    x_sec: 99.05
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-700/902d9dda-69e7-4ac6-a243-31507bc90a5f/signal_T2tt_700_200.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-700/b320f7bb-dee9-4779-9440-0f02618698a2/signal_T2tt_700_200.root
+  - name: signal_T2tt_700_300
+    n_events: 90398
+    x_sec: 99.05
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-700/902d9dda-69e7-4ac6-a243-31507bc90a5f/signal_T2tt_700_300.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-700/b320f7bb-dee9-4779-9440-0f02618698a2/signal_T2tt_700_300.root
+  - name: signal_T2tt_700_400
+    n_events: 86098
+    x_sec: 99.05
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-700/902d9dda-69e7-4ac6-a243-31507bc90a5f/signal_T2tt_700_400.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-700/b320f7bb-dee9-4779-9440-0f02618698a2/signal_T2tt_700_400.root
+  - name: signal_T2tt_700_500
+    n_events: 82604
+    x_sec: 99.05
+    files:
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-700/902d9dda-69e7-4ac6-a243-31507bc90a5f/signal_T2tt_700_500.root
+    - /uscms_data/d3/tsereno/OneStopCoffea/analysis_inputs/signals/split/2024/mStop-700/b320f7bb-dee9-4779-9440-0f02618698a2/signal_T2tt_700_500.root
