@@ -197,7 +197,9 @@ analyzer:
       sel_name: selection
     - *histograms
 
-location_priorities: [".*(T0|T1|T2).*", eos]
+# Replicas advertised at other sites failed reads; these three sites together
+# cover every file in the configured background datasets.
+location_priorities: ["T2_US_Wisconsin", "T1_US_FNAL_Disk", "T2_BE_IIHE"]
 
 event_collections:
   - dataset: qcd*2024*

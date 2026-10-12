@@ -50,10 +50,10 @@ LOCAL_SAMPLES = {
     ),
 }
 TITLES = {
-    "qcd": "QCD multijet background",
-    "z_nunu": r"$Z\to\nu\bar{\nu}$ + jets background",
-    "lost_lepton": "Lost-lepton background",
-    "total": "Total background",
+    "qcd": "QCD Background",
+    "z_nunu": r"$Z\to\nu\bar{\nu}$ + Jets Background",
+    "lost_lepton": "Lost-Lepton Background",
+    "total": "Total Background",
 }
 
 
@@ -211,8 +211,10 @@ def plot_category(key, local, local_stat, paper, paper_stat, paper_total_unc, ou
     ratio_unc = ratio * np.hypot(ratio_rel_local, ratio_rel_paper)
 
     positive = np.concatenate((local[local > 0], paper[paper > 0]))
-    ymin = max(float(np.min(positive)) * 0.35, 1e-4)
-    ymax = float(np.max(positive)) * 4.0
+    ymin = max(float(np.min(positive)) * 0.035, 1e-5)
+    # Reserve ample logarithmic headroom above the largest yield so the search-
+    # region category labels remain visually separate from the data.
+    ymax = float(np.max(positive)) * 300.0
 
     plt.style.use(mplhep.style.CMS)
     fig, axes = plt.subplots(
@@ -220,27 +222,32 @@ def plot_category(key, local, local_stat, paper, paper_stat, paper_total_unc, ou
         gridspec_kw={"height_ratios": (1, 1, 0.72), "hspace": 0.06},
     )
     for axis, values, errors, color, label in (
-        (axes[0], local, local_stat, "#2166ac", "Run-3 direct MC (stat. unc.)"),
-        (axes[1], paper, paper_total_unc, "#b2182b", r"Run-2 data-driven pre-fit ($\mathrm{stat.}\oplus\mathrm{syst.}$ unc.)"),
+        (axes[0], local, local_stat, "#2166ac", r"$\mathbf{Run\!\!-\!3\ direct\ MC}$ (stat. unc.)"),
+        (axes[1], paper, paper_total_unc, "#b2182b", r"$\mathbf{Run\!\!-\!2\ data\!\!-\!driven\ pre\!\!-\!fit}$ ($\mathrm{stat.}\oplus\mathrm{syst.}$ unc.)"),
     ):
-        axis.stairs(positive_for_log(values), edges, color=color, linewidth=1.35, label=label)
+        axis.stairs(positive_for_log(values), edges, color=color, linewidth=2.025, label=label)
         mask = values > 0
-        axis.errorbar(bins[mask], values[mask], yerr=errors[mask], fmt="none", ecolor=color, elinewidth=0.65, alpha=0.65)
+        axis.errorbar(bins[mask], values[mask], yerr=errors[mask], fmt="none", ecolor=color, elinewidth=0.975, alpha=0.65)
         axis.set_yscale("log")
         axis.set_ylim(ymin, ymax)
         axis.set_ylabel("Expected events")
-        axis.legend(frameon=False, loc="lower left", fontsize=12)
-        zeros = int(np.count_nonzero(values <= 0))
-        if zeros:
-            axis.text(0.995, 0.04, f"{zeros} zero-yield bins omitted on log scale", transform=axis.transAxes, ha="right", fontsize=10)
+        is_paper_panel = axis is axes[1]
+        axis.legend(
+            frameon=True,
+            loc="upper right" if is_paper_panel else "lower left",
+            prop={"size": 15.3, "weight": "normal"},
+            facecolor="white",
+            edgecolor="0.45",
+            framealpha=0.82,
+        )
 
     valid = np.isfinite(ratio) & (ratio > 0)
-    axes[2].axhline(1.0, color="black", linestyle="--", linewidth=1.0)
-    axes[2].errorbar(bins[valid], ratio[valid], yerr=ratio_unc[valid], fmt="o", markersize=2.4, color="#4d4d4d", ecolor="#777777", elinewidth=0.55)
+    axes[2].axhline(1.0, color="black", linestyle="--", linewidth=1.5)
+    axes[2].errorbar(bins[valid], ratio[valid], yerr=ratio_unc[valid], fmt="o", markersize=3.6, color="#4d4d4d", ecolor="#777777", elinewidth=0.825)
     axes[2].set_yscale("log")
     if np.any(valid):
-        low = max(np.nanmin(ratio[valid] - np.minimum(ratio_unc[valid], 0.9 * ratio[valid])) * 0.75, 1e-3)
-        high = np.nanmax(ratio[valid] + ratio_unc[valid]) * 1.35
+        low = max(np.nanmin(ratio[valid] - np.minimum(ratio_unc[valid], 0.9 * ratio[valid])) * 0.075, 1e-4)
+        high = np.nanmax(ratio[valid] + ratio_unc[valid]) * 13.5
         axes[2].set_ylim(low, high)
     axes[2].set_ylabel("Run 3 / Run 2")
     axes[2].set_xlabel("Search region bin number")
@@ -254,15 +261,15 @@ def plot_category(key, local, local_stat, paper, paper_stat, paper_total_unc, ou
         for boundary in major:
             axis.axvline(boundary, color="black", linestyle=(0, (4, 4)), linewidth=1.0, zorder=0)
     for x, text in njet_labels:
-        axes[0].text(x, 0.975, rf"$N_{{\rm jet}}={text}$", transform=axes[0].get_xaxis_transform(), ha="center", va="top", fontsize=11, bbox={"facecolor": "white", "alpha": 0.75, "edgecolor": "none", "pad": 1})
-    for x, text in nbjet_labels:
-        axes[0].text(x, 0.84, text, transform=axes[0].get_xaxis_transform(), ha="center", va="top", fontsize=9)
-    axes[0].text(1.5, 0.84, r"$N_{b\rm-jet}$", transform=axes[0].get_xaxis_transform(), ha="left", va="top", fontsize=9)
+        axes[0].text(x, 0.975, rf"$N_{{\rm jet}}={text}$", transform=axes[0].get_xaxis_transform(), ha="center", va="top", fontsize=16.5, fontweight="semibold", bbox={"facecolor": "white", "alpha": 0.8, "edgecolor": "none", "pad": 1})
+    for index, (x, text) in enumerate(nbjet_labels):
+        label = rf"$N_{{b\rm-jet}}={text}$" if index == 0 else text
+        axes[0].text(x, 0.86, label, transform=axes[0].get_xaxis_transform(), ha="center", va="top", fontsize=13.5, fontweight="semibold", bbox={"facecolor": "white", "alpha": 0.72, "edgecolor": "none", "pad": 0.6})
 
     mplhep.cms.label("Developmental", data=False, lumi=137, com=13.6, ax=axes[0])
     fig.suptitle(
-        f"{TITLES[key]} — Run-3 direct MC vs. Run-2 data-driven pre-fit predictions",
-        y=0.995, fontsize=18,
+        TITLES[key],
+        y=0.955, fontsize=22, fontweight="normal",
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output.with_suffix(".png"), dpi=170, bbox_inches="tight")
