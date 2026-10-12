@@ -8,4 +8,4 @@
   - name: SMS-2Stop_Par-mStop-1200_TuneCP5_13p6TeV_madgraphMLM-pythia8
     n_events: 488217
     das_path: /SMS-2Stop_Par-mStop-1200_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v1/NANOAODSIM
-    x_sec: 0.7526	
+    x_sec: 0.7526
