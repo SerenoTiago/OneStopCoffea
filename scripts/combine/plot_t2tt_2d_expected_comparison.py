@@ -35,9 +35,9 @@ from plot_t2tt_hepdata_comparison import (
 
 DEFAULT_LIMITS = Path(
     "analysis_products/combine/"
-    "2026-10-11_run3_2024_t2tt_grid_expanded_1007bkg_automcstats_expected_137fb/limits_expected.csv"
+    "26-10-11/run3_2024_t2tt_grid_expanded_1007bkg_automcstats_expected_137fb/limits_expected.csv"
 )
-DEFAULT_XSEC_YAML_DIR = Path("analyzer_resources/datasets/2024")
+DEFAULT_XSEC_YAML_DIR = Path("analyzer_resources/datasets/2024/2stop_split")
 DEFAULT_ROOT = Path(
     "data/SUS-19-006/audit_2026-09-10/"
     "CMS-SUS-19-006_Figure_014-a.root"
@@ -312,8 +312,16 @@ def add_run3_contours(
     x_centers: np.ndarray,
     y_centers: np.ndarray,
     grids: list[tuple[str, np.ndarray, str]],
+    *,
+    color: str = "black",
+    label_prefix: str = "",
+    legend_handles: list[Line2D] | None = None,
 ) -> list[str]:
-    """Draw r=1 with piecewise-linear interpolation and no extrapolation."""
+    """Draw r=1 with piecewise-linear interpolation and no extrapolation.
+
+    With ``legend_handles`` the handles are appended there for a combined
+    legend instead of drawing this function's own legend.
+    """
     absent: list[str] = []
     for label, values, linestyle in grids:
         finite = values[np.isfinite(values)]
@@ -325,7 +333,7 @@ def add_run3_contours(
             y_centers,
             np.ma.masked_invalid(values),
             levels=[1.0],
-            colors="black",
+            colors=color,
             linewidths=1.8,
             linestyles=linestyle,
             corner_mask=False,
@@ -335,20 +343,23 @@ def add_run3_contours(
             [path_effects.Stroke(linewidth=3.2, foreground="white"), path_effects.Normal()]
         )
     handles = [
-        Line2D([], [], color="black", linewidth=1.8, linestyle="-", label="Median expected"),
+        Line2D([], [], color=color, linewidth=1.8, linestyle="-", label=f"{label_prefix}Median expected"),
         Line2D(
             [], [],
-            color="black",
+            color=color,
             linewidth=1.8,
             linestyle="--",
-            label=(
+            label=label_prefix + (
                 r"Expected $\pm 1\sigma$ ($+1\sigma$ outside grid)"
                 if r"Expected $+1\sigma$" in absent
                 else r"Expected $\pm 1\sigma$"
             ),
         ),
     ]
-    ax.legend(handles=handles, loc="upper right", fontsize=7.5, framealpha=0.9)
+    if legend_handles is None:
+        ax.legend(handles=handles, loc="upper right", fontsize=7.5, framealpha=0.9)
+    else:
+        legend_handles.extend(handles)
     return absent
 
 
@@ -394,7 +405,14 @@ def add_top_mass_line(ax: plt.Axes, *, label: bool = True) -> None:
     )
 
 
-def add_run2_contours(ax: plt.Axes, root_path: Path) -> dict[str, tuple[int, bool]]:
+def add_run2_contours(
+    ax: plt.Axes,
+    root_path: Path,
+    *,
+    color: str = "black",
+    label_prefix: str = "",
+    legend_handles: list[Line2D] | None = None,
+) -> dict[str, tuple[int, bool]]:
     graph_specs = (
         ("ExpLim", "-"),
         ("ExpLimSdn", "--"),
@@ -415,7 +433,7 @@ def add_run2_contours(ax: plt.Axes, root_path: Path) -> dict[str, tuple[int, boo
         line, = ax.plot(
             x,
             y,
-            color="black",
+            color=color,
             linewidth=1.8,
             linestyle=linestyle,
             zorder=5,
@@ -425,24 +443,27 @@ def add_run2_contours(ax: plt.Axes, root_path: Path) -> dict[str, tuple[int, boo
         )
     handles = [
         Line2D(
-            [], [], color="0.45" if not statuses["ExpLim"][1] else "black",
+            [], [], color="0.45" if not statuses["ExpLim"][1] else color,
             linewidth=1.8, linestyle="-",
-            label=(
+            label=label_prefix + (
                 "Median expected (left of range)"
                 if not statuses["ExpLim"][1]
                 else "Median expected"
             ),
         ),
         Line2D(
-            [], [], color="black", linewidth=1.8, linestyle="--",
-            label=(
+            [], [], color=color, linewidth=1.8, linestyle="--",
+            label=label_prefix + (
                 r"Expected $\pm 1\sigma$ ($+1\sigma$ left of range)"
                 if not statuses["ExpLimSup"][1]
                 else r"Expected $\pm 1\sigma$"
             ),
         ),
     ]
-    ax.legend(handles=handles, loc="upper right", fontsize=7.5, framealpha=0.9)
+    if legend_handles is None:
+        ax.legend(handles=handles, loc="upper right", fontsize=7.5, framealpha=0.9)
+    else:
+        legend_handles.extend(handles)
     return statuses
 
 
