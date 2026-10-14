@@ -16,7 +16,7 @@
 #                            (--test: analysis_products/old_results/26-09-10_hadsusy_backgrounds_10k)
 #   BACKGROUND_GLOB default: *.result
 #   SIGNAL_GLOB     default: *.result
-#   COMBINE_DIR     default: analysis_products/combine/2026-10-11_run3_2024_t2tt_grid_expanded_1007bkg_automcstats_expected_137fb
+#   COMBINE_DIR     default: analysis_products/combine/26-10-11/run3_2024_t2tt_grid_expanded_1007bkg_automcstats_expected_137fb
 #   TARGET_LUMINOSITY_FB default: 137.0
 #   JOBS            default: 4 concurrent mass points
 #   LOCAL_LUMINOSITY_FB  deprecated alias for TARGET_LUMINOSITY_FB
@@ -50,7 +50,7 @@ SIGNAL_GLOB="${SIGNAL_GLOB:-*.result}"
 BACKGROUND_GLOB="${BACKGROUND_GLOB:-*.result}"
 MERGED_DIR="${MERGED_DIR:-.application_data/combine_inputs_2026-10-11_t2tt_grid_expanded_1007bkg}"
 CONFIG_DIR="${CONFIG_DIR:-.application_data/generated_postprocess/2026-10-11_t2tt_grid_expanded_1007bkg_automcstats_expected_137fb}"
-COMBINE_DIR="${COMBINE_DIR:-analysis_products/combine/2026-10-11_run3_2024_t2tt_grid_expanded_1007bkg_automcstats_expected_137fb}"
+COMBINE_DIR="${COMBINE_DIR:-analysis_products/combine/26-10-11/run3_2024_t2tt_grid_expanded_1007bkg_automcstats_expected_137fb}"
 LIMITS_CSV="${LIMITS_CSV:-$COMBINE_DIR/limits_expected.csv}"
 SEARCHBIN_PLOT_DIR="${SEARCHBIN_PLOT_DIR:-$COMBINE_DIR/search_bin_diagnostics}"
 SEARCHBIN_COMBINED_OUT="${SEARCHBIN_COMBINED_OUT:-$COMBINE_DIR/search_bin_diagnostics_combined.png}"

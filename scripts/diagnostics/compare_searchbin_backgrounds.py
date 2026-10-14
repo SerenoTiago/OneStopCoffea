@@ -60,7 +60,7 @@ TITLES = {
 def parse_args() -> argparse.Namespace:
     base = Path(
         "analysis_products/combine/"
-        "2026-10-06_run3_2024_projection_137fb_t2tt_1250_offline_trigger_approx"
+        "superseded/26-10-06/run3_2024_projection_137fb_t2tt_1250_offline_trigger_approx"
     )
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(

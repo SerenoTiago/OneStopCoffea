@@ -25,7 +25,7 @@ NJETS = ("2-3", "4-5", "6-7", "8-9", ">=10")
 
 
 def parse_args():
-    base = Path("analysis_products/combine/2026-10-06_run3_2024_projection_137fb_t2tt_1250_offline_trigger_approx")
+    base = Path("analysis_products/combine/superseded/26-10-06/run3_2024_projection_137fb_t2tt_1250_offline_trigger_approx")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--shapes", type=Path, default=base / "T2tt_mStop-1250_mLSP-1/shapes_bins_hadsusy.root")
     parser.add_argument("--bins", type=Path, default=Path("analysis_products/plots/174searchbinperbackground/background_validation_174_bins.csv"))

@@ -79,7 +79,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--xsec-yaml-dir",
         type=Path,
-        default=Path("analyzer_resources/datasets/2024"),
+        default=Path("analyzer_resources/datasets/2024/2stop_split"),
         help="Dataset YAML directory used to add mass-dependent signal cross sections.",
     )
     return parser.parse_args()
