@@ -1,0 +1,27 @@
+# Legacy / unused cut and selection definitions for the hadronic SUSY
+# production (configurations/production/hadronic_susy/backgrounds.yaml).
+#
+# Audit of 2026-10-15 (development freeze): NO definitions were moved here.
+# Every module in backgrounds.yaml is executed and consumed:
+#   - the resolved pipeline susy_full_validation has 33 modules (LoadColumns,
+#     15 object/column makers, SimpleHLT, 10 selection modules,
+#     SelectOnColumns, 5 histograms);
+#   - every produced column is used by a later module, a selection, the
+#     search-bin assignment, or a histogram; all 11 selection columns are
+#     applied by SelectOnColumns (selection_names unset -> all, in order);
+#   - all three YAML anchors (objects, selection, histograms) are referenced;
+#     the file contains no commented-out or orphaned cuts.
+# backgrounds.yaml was therefore left unchanged.
+#
+# Notes for future cleanup (not acted on; these are active and change the
+# cutflow presentation, not the final selected yields):
+#   - njets, ht_gt_300 and htmiss_lt_ht reject no event beyond the full
+#     selection (N-1 = full) because search_bin_valid already requires
+#     Njet >= 2, HT >= 300 GeV and HTmiss < HT.
+#   - htmiss_gt_300 adds 2 events of unique rejection (strict > 300 vs the
+#     search-bin >= 300 boundary) over the 23 current background results.
+#   - The placeholder module PassAllSelection (hadronic_susy.py) is defined in
+#     code but used by no configuration.
+#
+# This file is not loaded by any analysis configuration.
+legacy_cuts: []

@@ -1,0 +1,24 @@
+diff --git a/configurations/production/hadronic_susy/backgrounds.yaml b/configurations/production/hadronic_susy/backgrounds.yaml
+index f1a97fe..dd5116d 100644
+--- a/configurations/production/hadronic_susy/backgrounds.yaml
++++ b/configurations/production/hadronic_susy/backgrounds.yaml
+@@ -197,8 +197,6 @@ analyzer:
+       sel_name: selection
+     - *histograms
+ 
+-# Replicas advertised at other sites failed reads; these three sites together
+-# cover every file in the configured background datasets.
+ location_priorities: ["T2_US_Wisconsin", "T1_US_FNAL_Disk", "T2_BE_IIHE"]
+ 
+ event_collections:
+@@ -208,6 +206,10 @@ event_collections:
+     pipelines: [susy_full_validation]
+   - dataset: tt_semilep*2024
+     pipelines: [susy_full_validation]
++  - dataset: tt_dilep*2024*
++    pipelines: [susy_full_validation]
++  - dataset: diboson*2024*
++    pipelines: [susy_full_validation]
+   - dataset: wjets*2024*
+     pipelines: [susy_full_validation]
+   - dataset: zjets*2024*
