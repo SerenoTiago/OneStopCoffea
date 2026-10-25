@@ -129,6 +129,18 @@ histograms: &histograms
       - {name: "Search bin", start: 0.5, stop: 174.5, bins: 174}
 
 selection: &selection
+  # Run-3 event-quality requirements (2026-10-19).  All era noise_filters
+  # flags (8 for 2024) must pass; the jet veto map rejects the event if any
+  # jet with pT > 15, TightLepVeto ID (recomputed by JetID) and
+  # chEmEF + neEmEF < 0.9 lies in a vetoed region, at any |eta|.
+  - module_name: NoiseFilter
+    selection_name: met_noise_filters
+
+  - module_name: VetoMap
+    input_col: Jet
+    selection_name: jet_veto_map
+    max_abs_eta: null
+
   - module_name: NObjFilter
     input_col: vetoElectron
     selection_name: zero_electron
@@ -208,7 +220,27 @@ event_collections:
     pipelines: [susy_full_validation]
   - dataset: tt_semilep*2024
     pipelines: [susy_full_validation]
+  - dataset: tt_dilep*2024*
+    pipelines: [susy_full_validation]
+  - dataset: diboson*2024*
+    pipelines: [susy_full_validation]
   - dataset: wjets*2024*
     pipelines: [susy_full_validation]
   - dataset: zjets*2024*
     pipelines: [susy_full_validation]
+
+# Pinned-size cluster (min = max) to avoid the adaptive-scaling churn
+# documented in docs/investigations/dask_exec_silent_data_loss_2026-10-15.md.
+# Workers still expire after worker_timeout (7200 s, Condor MaxRuntime) and
+# are replaced.  Own dashboard port and Condor log directory.
+extra_executors:
+  lpc-dask-condor-4G-100000-fixed250-bkg:
+    executor_name: LPCCondorDask
+    container: /cvmfs/unpacked.cern.ch/registry.hub.docker.com/coffeateam/coffea-dask-almalinux9:2025.10.2-py3.12
+    chunk_size: 100000
+    min_workers: 250
+    max_workers: 250
+    worker_memory: 4GB
+    worker_timeout: 7200
+    dashboard_address: localhost:8791
+    log_path: logs/condor/2026-10-19_backgrounds

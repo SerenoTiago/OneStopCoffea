@@ -127,6 +127,18 @@ histograms: &histograms
       - {name: "Search bin", start: 0.5, stop: 174.5, bins: 174}
 
 selection: &selection
+  # Run-3 event-quality requirements (2026-10-19).  All era noise_filters
+  # flags (8 for 2024) must pass; the jet veto map rejects the event if any
+  # jet with pT > 15, TightLepVeto ID (recomputed by JetID) and
+  # chEmEF + neEmEF < 0.9 lies in a vetoed region, at any |eta|.
+  - module_name: NoiseFilter
+    selection_name: met_noise_filters
+
+  - module_name: VetoMap
+    input_col: Jet
+    selection_name: jet_veto_map
+    max_abs_eta: null
+
   - module_name: NObjFilter
     input_col: vetoElectron
     selection_name: zero_electron

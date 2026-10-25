@@ -9,9 +9,9 @@
 # local inputs, normalization, labels, and output names remain explicitly Run 3.
 #
 # Optional overrides (env vars):
-#   SIGNAL_DIR      default: analysis_products/results/2026-10-11_run3_2024_t2tt_grid_expanded_signals
+#   SIGNAL_DIR      default: analysis_products/production_runs/2026-10-07_012944_hadronic_susy/current_signal
 #                            (--test: analysis_products/old_results/26-09-10_hadsusy_signal_10k)
-#   BACKGROUND_DIR  default: analysis_products/production_runs/2026-10-07_012944_hadronic_susy/background_results
+#   BACKGROUND_DIR  default: analysis_products/production_runs/2026-10-07_012944_hadronic_susy/current_backgrounds
 #                            (complete 2024 backgrounds, same selection as the signals)
 #                            (--test: analysis_products/old_results/26-09-10_hadsusy_backgrounds_10k)
 #   BACKGROUND_GLOB default: *.result
@@ -40,8 +40,8 @@ if [[ "$TEST_MODE" == "true" ]]; then
     DEFAULT_SIGNAL_DIR="analysis_products/old_results/26-09-10_hadsusy_signal_10k"
     DEFAULT_BACKGROUND_DIR="analysis_products/old_results/26-09-10_hadsusy_backgrounds_10k"
 else
-    DEFAULT_SIGNAL_DIR="analysis_products/results/2026-10-11_run3_2024_t2tt_grid_expanded_signals"
-    DEFAULT_BACKGROUND_DIR="analysis_products/production_runs/2026-10-07_012944_hadronic_susy/background_results"
+    DEFAULT_SIGNAL_DIR="analysis_products/production_runs/2026-10-07_012944_hadronic_susy/current_signal"
+    DEFAULT_BACKGROUND_DIR="analysis_products/production_runs/2026-10-07_012944_hadronic_susy/current_backgrounds"
 fi
 
 SIGNAL_DIR="${SIGNAL_DIR:-$DEFAULT_SIGNAL_DIR}"

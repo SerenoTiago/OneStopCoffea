@@ -70,7 +70,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--results-dir",
         type=Path,
-        default=Path("analysis_products/production_runs/2026-10-07_012944_hadronic_susy/background_results"),
+        default=Path("analysis_products/production_runs/2026-10-07_012944_hadronic_susy/current_backgrounds"),
         help="Directory of complete background .result files.",
     )
     parser.add_argument("--tables", type=Path, default=Path("data/SUS-19-006/audit_2026-09-10"))

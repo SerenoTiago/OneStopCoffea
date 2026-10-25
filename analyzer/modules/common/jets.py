@@ -169,6 +169,11 @@ class VetoMap(AnalyzerModule):
         Expression controlling whether this module should run for a given
         dataset based on metadata. By default, this filter runs only for
         Run 3 datasets.
+    max_abs_eta : float or None, optional
+        Only jets with $|\eta|$ below this value are checked against the map.
+        Defaults to 2.4 (historical behaviour).  ``None`` checks jets at any
+        $|\eta|$, as in the JME Run-3 recommendation; jets outside the map's
+        range evaluate to 0 (not vetoed).
 
     """
 
@@ -177,18 +182,21 @@ class VetoMap(AnalyzerModule):
     # should_run: MetadataFunc = field(factory=lambda: IS_RUN_2)
     should_run: MetadataExpr = field(factory=lambda: IsRun(3))
     veto_type: str = "jetvetomap"
+    max_abs_eta: float | None = 2.4
     __corrections: dict = field(factory=dict)
 
     def run(self, columns, params):
         map_name = columns.metadata["era"]["jet_veto_map"]["name"]
         corr = self.getCorr(columns.metadata)[map_name]
         j = columns[self.input_col]
-        j = j[
-            (abs(j.eta) < 2.4)
-            & (j.pt > 15)
+        quality = (
+            (j.pt > 15)
             & ((j.jetId & 0b100) != 0)
             & ((j.chEmEF + j.neEmEF) < 0.9)
-        ]
+        )
+        if self.max_abs_eta is not None:
+            quality = quality & (abs(j.eta) < self.max_abs_eta)
+        j = j[quality]
         vetoes = corr.evaluate(self.veto_type, j.eta, j.phi)
         failed = ak.any(vetoes != 0, axis=1)
         addSelection(columns, self.selection_name, ~failed)
