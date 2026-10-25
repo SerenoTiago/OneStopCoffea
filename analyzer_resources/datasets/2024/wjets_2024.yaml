@@ -4,24 +4,92 @@
   era: "2024"
   other_data:
     nanoversion: "V15"
+  # LO MadGraph MLM W->lnu (l = e, mu, tau) family, binned in generator-level
+  # LHE HT x M(lnu): HT edges 40/100/400/800/1500/2500/inf GeV, M(lnu) edges
+  # 0/120/inf GeV (12 mutually exclusive bins; all generator weights positive).
+  # Coverage gap: LHE HT < 40 GeV is not generated (negligible for HT > 300).
+  # x_sec in fb (OneStopCoffea convention; lumi in fb^-1).  Source: official
+  # CMS XSDB LO 13.6 TeV values for the WtoLNu-4Jets_Bin-HT-*-MLNu-* primary
+  # datasets, retrieved 2026-10-18 by T. Sereno, converted pb -> fb (x1000).
+  # XSDB entries reference the Summer24 MiniAODv6 production; the NanoAODv15
+  # datasets below are its direct DAS children with the same primary dataset
+  # names.  Values are after jet matching and filter (used as-is, no extra
+  # matching/filter efficiency, no k-factor).  Cross-check: GenXSecAnalyzer on
+  # 3 MiniAODv6 files per sample agrees within 0.03-0.7% (<= 1.4 sigma stat).
   samples:
-  - name: WToLNu2Jets_PTLNu40to100
-    n_events: 483030994
-    das_path: /WtoLNu-2Jets_Bin-2J-PTLNu-40to100_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM
-    x_sec: 1581000
-  - name: WToLNu2Jets_PTLNu100to200
-    n_events: 470520533
-    das_path: /WtoLNu-2Jets_Bin-2J-PTLNu-100to200_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM
-    x_sec: 411100
-  - name: WToLNu2Jets_PTLNu200to400
-    n_events: 75124628
-    das_path: /WtoLNu-2Jets_Bin-2J-PTLNu-200to400_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
-    x_sec: 53590
-  - name: WToLNu2Jets_PTLNu400to600
-    n_events: 14222725
-    das_path: /WtoLNu-2Jets_Bin-2J-PTLNu-400to600_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
-    x_sec: 3099
-  - name: WToLNu2Jets_PTLNu600toInf
-    n_events: 14991109
-    das_path: /WtoLNu-2Jets_Bin-2J-PTLNu-600_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
-    x_sec: 525.9
+  - name: WToLNu4Jets_HT40to100_MLNu0to120
+    n_events: 361395701
+    das_path: /WtoLNu-4Jets_Bin-HT-40to100-MLNu-0to120_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 4260000  # XSDB 4260 pb
+  - name: WToLNu4Jets_HT40to100_MLNu120
+    n_events: 43791645
+    das_path: /WtoLNu-4Jets_Bin-HT-40to100-MLNu-120_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 20650  # XSDB 20.65 pb
+  - name: WToLNu4Jets_HT100to400_MLNu0to120
+    n_events: 375281609
+    das_path: /WtoLNu-4Jets_Bin-HT-100to400-MLNu-0to120_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 1636000  # XSDB 1636 pb
+  - name: WToLNu4Jets_HT100to400_MLNu120
+    n_events: 22905968
+    das_path: /WtoLNu-4Jets_Bin-HT-100to400-MLNu-120_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 10180  # XSDB 10.18 pb
+  - name: WToLNu4Jets_HT400to800_MLNu0to120
+    n_events: 124386168
+    das_path: /WtoLNu-4Jets_Bin-HT-400to800-MLNu-0to120_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 59860  # XSDB 59.86 pb
+  - name: WToLNu4Jets_HT400to800_MLNu120
+    n_events: 14880703
+    das_path: /WtoLNu-4Jets_Bin-HT-400to800-MLNu-120_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 526  # XSDB 0.526 pb
+  - name: WToLNu4Jets_HT800to1500_MLNu0to120
+    n_events: 15283623
+    das_path: /WtoLNu-4Jets_Bin-HT-800to1500-MLNu-0to120_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 6226  # XSDB 6.226 pb
+  - name: WToLNu4Jets_HT800to1500_MLNu120
+    n_events: 12681807
+    das_path: /WtoLNu-4Jets_Bin-HT-800to1500-MLNu-120_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 62.45  # XSDB 0.06245 pb
+  - name: WToLNu4Jets_HT1500to2500_MLNu0to120
+    n_events: 15480230
+    das_path: /WtoLNu-4Jets_Bin-HT-1500to2500-MLNu-0to120_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 450.3  # XSDB 0.4503 pb
+  - name: WToLNu4Jets_HT1500to2500_MLNu120
+    n_events: 15097108
+    das_path: /WtoLNu-4Jets_Bin-HT-1500to2500-MLNu-120_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 5.052  # XSDB 0.005052 pb
+  - name: WToLNu4Jets_HT2500_MLNu0to120
+    n_events: 13634921
+    das_path: /WtoLNu-4Jets_Bin-HT-2500-MLNu-0to120_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 30.85  # XSDB 0.03085 pb
+  - name: WToLNu4Jets_HT2500_MLNu120
+    n_events: 14086002
+    das_path: /WtoLNu-4Jets_Bin-HT-2500-MLNu-120_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 0.3781  # XSDB 0.0003781 pb
+
+# ============================================================
+# Legacy NLO aMC@NLO FxFx W->lnu samples (2J only, PTLNu-binned), retained
+# for reference.  Superseded by the LO MLM HT x MLNu-binned family above;
+# their 2026-10-07 results are in
+# production_runs/2026-10-07_012944_hadronic_susy/current_backgrounds
+# (wjets_2024__WToLNu2Jets_*.result).
+# ============================================================
+#  - name: WToLNu2Jets_PTLNu40to100
+#    n_events: 483030994
+#    das_path: /WtoLNu-2Jets_Bin-2J-PTLNu-40to100_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM
+#    x_sec: 1581000
+#  - name: WToLNu2Jets_PTLNu100to200
+#    n_events: 470520533
+#    das_path: /WtoLNu-2Jets_Bin-2J-PTLNu-100to200_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM
+#    x_sec: 411100
+#  - name: WToLNu2Jets_PTLNu200to400
+#    n_events: 75124628
+#    das_path: /WtoLNu-2Jets_Bin-2J-PTLNu-200to400_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+#    x_sec: 53590
+#  - name: WToLNu2Jets_PTLNu400to600
+#    n_events: 14222725
+#    das_path: /WtoLNu-2Jets_Bin-2J-PTLNu-400to600_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+#    x_sec: 3099
+#  - name: WToLNu2Jets_PTLNu600toInf
+#    n_events: 14991109
+#    das_path: /WtoLNu-2Jets_Bin-2J-PTLNu-600_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+#    x_sec: 525.9

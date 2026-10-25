@@ -1,0 +1,29 @@
+- name: diboson_2024
+  title: VV
+  sample_type: MC
+  era: "2024"
+  other_data:
+    nanoversion: "V15"
+  # Inclusive Pythia8 LO diboson samples (all generator weights positive).
+  # x_sec in fb.  Source: official CMS XSDB 13.6 TeV Pythia8 LO values
+  # (retrieved 2026-10-18 by T. Sereno; same as Riley's config and
+  # diboson_2023_preBPix), converted pb -> fb.  The XSDB entries reference the
+  # Run3Summer22 production; applicability to 2024 verified: the Summer22 and
+  # Summer24 McM GS fragments are identical apart from whitespace (same
+  # WeakDoubleBoson process, CP5, 13.6 TeV, no filter), and GenXSecAnalyzer on
+  # 3 Summer24 MiniAODv6 files per sample gives 80.15 +- 0.13, 29.07 +- 0.05,
+  # 12.79 +- 0.04 pb.  These are LO inclusive values; no k-factor applied.
+  # (McM's 75.8/27.6/10.32 pb are 13 TeV placeholders and are not used.)
+  samples:
+  - name: WW
+    n_events: 63986968
+    das_path: /WW_TuneCP5_13p6TeV_pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 80230  # XSDB 80.23 pb
+  - name: WZ
+    n_events: 30547825
+    das_path: /WZ_TuneCP5_13p6TeV_pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 29100  # XSDB 29.1 pb
+  - name: ZZ
+    n_events: 4800000
+    das_path: /ZZ_TuneCP5_13p6TeV_pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 12750  # XSDB 12.75 pb

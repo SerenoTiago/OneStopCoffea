@@ -1,0 +1,23 @@
+- name: tt_dileptonic_2024
+  title: "$t\\overline{t}$ Dileptonic"
+  sample_type: MC
+  era: "2024"
+  other_data:
+    nanoversion: "V15"
+  # x_sec in fb: sigma_tt(13.6 TeV, NNLO+NNLL, Top++v2.0, mt = 172.5 GeV)
+  # = 923.6 pb (LHC Top WG, twiki LHCPhysics/TtbarNNLO) x BR(2l2nu) = 0.105,
+  # i.e. 96.98 pb (as in Riley's config).  Same sigma_tt and BR set as
+  # TTto4Q (x 0.457 = 422.1 pb) and TTtoLNu2Q (x 0.438 = 404.5 pb); the three
+  # BRs sum to 1.000.  Do NOT use the XSDB/GenXSecAnalyzer 762.1 pb: it is the
+  # POWHEG hvq NLO *inclusive* ttbar cross section, identical in the 2L2Nu,
+  # LNu2Q and 4Q gridpacks (same pwg-stat.dat); the channel is selected only
+  # through topdecaymode (22200 here) and is not folded into that number.
+  # ~0.4% negative generator weights, as in the other powheg ttbar samples.
+  # n_events is the DAS count of the v3 dataset; Riley's 295167587 does not
+  # match any TTto2L2Nu NanoAODv15 dataset and is not used.  An _ext1-v2
+  # extension (199550999 events) exists but is not included.
+  samples:
+  - name: TTto2L2Nu
+    n_events: 470123263
+    das_path: /TTto2L2Nu_TuneCP5_13p6TeV_powheg-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM
+    x_sec: 96980  # 923.6 pb x 0.105

@@ -4,20 +4,60 @@
   era: "2024"
   other_data:
     nanoversion: "V15"
+  # LO MadGraph MLM HT-binned Z->nunu family (all generator weights positive).
+  # x_sec in fb (OneStopCoffea convention; lumi in fb^-1).  Source: official
+  # CMS XSDB (xsecdb-xsdb-official.app.cern.ch) LO 13.6 TeV values for the
+  # Zto2Nu-4Jets_Bin-HT-* primary datasets, retrieved 2026-10-14 by T. Sereno,
+  # converted pb -> fb (x1000).  XSDB entries reference the MiniAOD production;
+  # the NanoAODv15 datasets below are its direct DAS children with the same
+  # primary dataset names.  Values include matching and filter efficiencies; no
+  # k-factor is applied.  Cross-check: GenXSecAnalyzer on 3 MiniAODv6 files per
+  # sample agrees within 0.1-1.7%.
   samples:
-  - name: ZNuNu2Jets_PTNuNu100to200
-    n_events: 295210275
-    das_path: /Zto2Nu-2Jets_Bin-2J-PTNuNu-100to200_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
-    x_sec: 100200
-  - name: ZNuNu2Jets_PTNuNu200to400
-    n_events: 49210192
-    das_path: /Zto2Nu-2Jets_Bin-2J-PTNuNu-200to400_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
-    x_sec: 13760
-  - name: ZNuNu2Jets_PTNuNu400to600
-    n_events: 15433759
-    das_path: /Zto2Nu-2Jets_Bin-2J-PTNuNu-400to600_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
-    x_sec: 775
-  - name: ZNuNu2Jets_PTNuNu600
-    n_events: 15195439
-    das_path: /Zto2Nu-2Jets_Bin-2J-PTNuNu-600_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
-    x_sec: 130.4
+  - name: ZNuNu4Jets_HT100to200
+    n_events: 332233649
+    das_path: /Zto2Nu-4Jets_Bin-HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM
+    x_sec: 272800  # XSDB 272.8 pb
+  - name: ZNuNu4Jets_HT200to400
+    n_events: 229412865
+    das_path: /Zto2Nu-4Jets_Bin-HT-200to400_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v3/NANOAODSIM
+    x_sec: 75660  # XSDB 75.66 pb
+  - name: ZNuNu4Jets_HT400to800
+    n_events: 23590909
+    das_path: /Zto2Nu-4Jets_Bin-HT-400to800_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 13080  # XSDB 13.08 pb
+  - name: ZNuNu4Jets_HT800to1500
+    n_events: 9090008
+    das_path: /Zto2Nu-4Jets_Bin-HT-800to1500_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 1362  # XSDB 1.362 pb
+  - name: ZNuNu4Jets_HT1500to2500
+    n_events: 10534808
+    das_path: /Zto2Nu-4Jets_Bin-HT-1500to2500_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 97.93  # XSDB 0.09793 pb
+  - name: ZNuNu4Jets_HT2500
+    n_events: 10669824
+    das_path: /Zto2Nu-4Jets_Bin-HT-2500_TuneCP5_13p6TeV_madgraphMLM-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+    x_sec: 6.665  # XSDB 0.006665 pb
+
+# ============================================================
+# Legacy NLO aMC@NLO FxFx Z->nunu samples (2J only, PTNuNu-binned), retained
+# for reference.  Superseded by the LO MLM HT-binned family above; their
+# 2026-10-07 results are in
+# production_runs/2026-10-07_012944_hadronic_susy/legacy_backgrounds.
+# ============================================================
+#  - name: ZNuNu2Jets_PTNuNu100to200
+#    n_events: 295210275
+#    das_path: /Zto2Nu-2Jets_Bin-2J-PTNuNu-100to200_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+#    x_sec: 100200
+#  - name: ZNuNu2Jets_PTNuNu200to400
+#    n_events: 49210192
+#    das_path: /Zto2Nu-2Jets_Bin-2J-PTNuNu-200to400_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+#    x_sec: 13760
+#  - name: ZNuNu2Jets_PTNuNu400to600
+#    n_events: 15433759
+#    das_path: /Zto2Nu-2Jets_Bin-2J-PTNuNu-400to600_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+#    x_sec: 775
+#  - name: ZNuNu2Jets_PTNuNu600
+#    n_events: 15195439
+#    das_path: /Zto2Nu-2Jets_Bin-2J-PTNuNu-600_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/RunIII2024Summer24NanoAODv15-150X_mcRun3_2024_realistic_v2-v2/NANOAODSIM
+#    x_sec: 130.4
