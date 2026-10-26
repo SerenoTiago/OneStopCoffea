@@ -25,6 +25,7 @@ from attrs import define, field
 
 import copy
 import abc
+import enum
 from typing import Any, Literal, ClassVar
 import logging
 
@@ -192,6 +193,15 @@ class ResultGroup(ResultBase):
         if "_provenance" in self.results:
             if "_provenance" not in other.results:
                 raise RuntimeError()
+            modes = {
+                r._metadata.get("mc_normalization", MCNormalization.unit.value)
+                for r in (self, other)
+            }
+            if len(modes) > 1:
+                raise ResultIntegrityError(
+                    f"Cannot merge results for {self.name} with different "
+                    f"mc_normalization modes {sorted(modes)}."
+                )
             intersection = self["_provenance"].file_set.intersection(other["_provenance"].file_set)
             if (
                 not intersection.empty
@@ -580,6 +590,53 @@ class RawSelectionFlow(ResultBase):
         pass
 
 
+class MCNormalization(enum.Enum):
+    """
+    Event-weight convention used to normalize an MC sample to ``lumi * x_sec``.
+
+    Must match how the sample's histograms are filled:
+    ``unit`` for unweighted events, ``sign_genweight`` for sign(genWeight)
+    (``PosNegGenWeight``), ``genweight`` for the full genWeight.
+    """
+
+    unit = "unit"
+    sign_genweight = "sign_genweight"
+    genweight = "genweight"
+
+
+GEN_WEIGHT_SUM_NAME = "_gen_weight_sum"
+
+
+@define
+class GenWeightSum(ResultBase):
+    """
+    Generator-weight sums over every processed MC event, before any selection.
+
+    Filled once per chunk at sample level, only for samples whose
+    mc_normalization is not ``unit``. ``n_events`` is the number of events
+    summed and must match the sample provenance. Never scaled.
+    """
+
+    sum_sign_genweight: float
+    sum_genweight: float
+    n_events: int
+
+    def __iadd__(self, other):
+        self.sum_sign_genweight += other.sum_sign_genweight
+        self.sum_genweight += other.sum_genweight
+        self.n_events += other.n_events
+        return self
+
+    def approxSize(self):
+        return 24
+
+    def iscale(self, value):
+        return self
+
+    def finalize(self, finalizer):
+        pass
+
+
 def configureConverter(conv):
     @conv.register_structure_hook
     def _(val: Any, _) -> hist.Hist:
@@ -676,6 +733,51 @@ def loadResults(paths, peek_only=False, keep_patterns=None, return_file_sizes=Fa
         return ret
 
 
+def mcNormalization(sample_data, processed_events):
+    """
+    Return the denominator normalizing an MC sample to ``lumi * x_sec``.
+
+    The convention is the sample's ``mc_normalization`` metadata, set per
+    event collection in the analysis configuration. Results without it,
+    including those written before it existed, use ``unit``.
+    """
+    meta = sample_data.metadata
+    sample = f"{meta['dataset_name']}--{meta['sample_name']}"
+    mode = meta.get("mc_normalization", MCNormalization.unit.value)
+    try:
+        mode = MCNormalization(mode)
+    except ValueError:
+        raise ValueError(
+            f"Sample {sample}: invalid mc_normalization {mode!r}, expected one "
+            f"of {[m.value for m in MCNormalization]}."
+        ) from None
+    if mode is MCNormalization.unit:
+        return processed_events
+
+    if GEN_WEIGHT_SUM_NAME not in sample_data.results:
+        raise ResultIntegrityError(
+            f"Sample {sample}: mc_normalization {mode.value!r} requires "
+            f"generator-weight sums, which this result does not have (written "
+            f"by an older version, or the sample has no genWeight branch)."
+        )
+    gen = sample_data[GEN_WEIGHT_SUM_NAME]
+    if gen.n_events != processed_events:
+        raise ResultIntegrityError(
+            f"Sample {sample}: generator-weight sums cover {gen.n_events} events "
+            f"but provenance has {processed_events}."
+        )
+    if mode is MCNormalization.sign_genweight:
+        denominator = gen.sum_sign_genweight
+    else:
+        denominator = gen.sum_genweight
+    if denominator <= 0:
+        raise ResultIntegrityError(
+            f"Sample {sample}: non-positive {mode.value} normalization "
+            f"({denominator}) over {gen.n_events} events."
+        )
+    return denominator
+
+
 def mergeAndScale(
     results, drop_sample_pattern=None, luminosity_override: float | None = None
 ):
@@ -714,7 +816,7 @@ def mergeAndScale(
                     else source_lumi
                 )
                 xs = s_meta["x_sec"]
-                scale = lumi * xs / processed_events
+                scale = lumi * xs / mcNormalization(sample_data, processed_events)
                 sample_data.iscale(scale)
                 if luminosity_override is not None:
                     s_meta["era"].setdefault("source_lumi", source_lumi)

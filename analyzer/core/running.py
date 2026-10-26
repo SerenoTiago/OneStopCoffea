@@ -76,11 +76,11 @@ def getTasks(
     matched = getMatchedCollections(dataset_repo, dataset_descs)
     if any(len(x) != 1 for x in matched.values()):
         raise RuntimeError("More than one matching pattern.")
-    todo = [(k, x[0].pipelines) for k, x in matched.items()]
+    todo = [(k, x[0]) for k, x in matched.items()]
     ret = []
     if filter_dataset:
         todo = [(k, v) for k, v in todo if filter_dataset.match(k)]
-    for dataset_name, pipelines in todo:
+    for dataset_name, desc in todo:
         dataset = dataset_repo[dataset_name]
         for sample in dataset:
             if filter_sample is not None and not filter_sample.match(sample.name):
@@ -88,12 +88,13 @@ def getTasks(
             sample, meta = getWithMeta(dataset, sample.name)
             meta = dict(meta)
             meta["era"] = era_repo[meta["era"]]
+            meta["mc_normalization"] = desc.mc_normalization.value
             file_set = sample.source.getFileSet(location_priorities=location_priorities)
             ret.append(
                 ExecutionTask(
                     file_set=file_set,
                     metadata=meta,
-                    pipelines=pipelines,
+                    pipelines=desc.pipelines,
                     output_name=meta["dataset_name"] + "__" + meta["sample_name"],
                 )
             )
@@ -113,6 +114,7 @@ def getTasksExplicit(
         sample, meta = getWithMeta(dataset, sample_name)
         meta = dict(meta)
         meta["era"] = era_repo[meta["era"]]
+        meta["mc_normalization"] = matched[0].mc_normalization.value
         file_set = sample.source.getFileSet(location_priorities=location_priorities)
         ret.append(
             ExecutionTask(

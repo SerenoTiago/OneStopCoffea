@@ -1,6 +1,8 @@
 from __future__ import annotations
 import copy
 
+import awkward as ak
+
 from attrs import define, field, asdict
 
 
@@ -15,7 +17,11 @@ from analyzer.core.results import (
     ResultProvenance,
     ResultGroup,
     ResultBase,
+    GenWeightSum,
+    GEN_WEIGHT_SUM_NAME,
+    MCNormalization,
 )
+from analyzer.core.datasets import SampleType
 from analyzer.core.param_specs import getWithValues
 from collections import ChainMap
 from analyzer.modules.common.load_columns import LoadColumns
@@ -27,6 +33,24 @@ from analyzer.utils.structure_tools import SimpleCache, freeze, flatten
 
 
 logger = logging.getLogger("analyzer.core")
+
+
+def genWeightSum(columns):
+    """
+    Sum the generator weights of an unfiltered MC chunk.
+
+    Returns None if the chunk has no genWeight branch.
+    """
+    if "genWeight" not in columns.fields:
+        return None
+    gw = columns["genWeight"]
+    return GenWeightSum(
+        GEN_WEIGHT_SUM_NAME,
+        # Same sign convention as PosNegGenWeight: genWeight == 0 counts as -1.
+        sum_sign_genweight=float(ak.sum(ak.where(gw > 0, 1.0, -1.0))),
+        sum_genweight=float(ak.sum(gw)),
+        n_events=len(gw),
+    )
 
 
 def getPipelineSpecs(pipeline, metadata):
@@ -242,12 +266,27 @@ class Analyzer:
         sample_container.addResult(pipeline_container)
         metadata = copy.deepcopy(metadata)
         metadata["chunk"] = asdict(chunk)
+        # Generator-weight sums are only needed, and only recorded, for MC
+        # normalized by something other than the processed event count.
+        normalization = MCNormalization(
+            metadata.get("mc_normalization", MCNormalization.unit.value)
+        )
+        record_gen_weights = (
+            normalization is not MCNormalization.unit
+            and SampleType(metadata["sample_type"]) == SampleType.MC
+        )
 
         for k, pipeline in self.base_pipelines.items():
             if k not in pipelines:
                 continue
             spec = getPipelineSpecs(pipeline, metadata)
             vals = getWithValues(spec, {"chunk": chunk, "metadata": metadata})
+            if record_gen_weights and GEN_WEIGHT_SUM_NAME not in sample_container.results:
+                # pipeline[0] is the event source. Its output is cached, so the
+                # pipeline reuses these unfiltered columns below.
+                gen_weight_sum = genWeightSum(pipeline[0](vals))
+                if gen_weight_sum is not None:
+                    sample_container.addResult(gen_weight_sum)
             _, result = self.runPipelineWithParameters(
                 pipeline,
                 vals,

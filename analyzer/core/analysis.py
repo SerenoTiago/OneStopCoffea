@@ -3,6 +3,7 @@ from attrs import define, field
 from analyzer.core.serialization import converter, setupConverter
 
 from analyzer.core.analyzer import Analyzer
+from analyzer.core.results import MCNormalization
 from analyzer.core.executors import Executor
 from analyzer.configuration import CONFIG
 from analyzer.utils.config_loading import loadConfigData
@@ -16,6 +17,7 @@ from analyzer.core.linting import LintConfig
 class DatasetDescription:
     pipelines: list[str]
     dataset: Pattern
+    mc_normalization: MCNormalization = MCNormalization.unit
 
 
 @define
